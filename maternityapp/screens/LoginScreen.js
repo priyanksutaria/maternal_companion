@@ -1,26 +1,43 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Image, ActivityIndicator, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { PregnancyProvider, usePregnancy } from '../context/PregnancyContext';
+
+// Set your backend IP here for device testing. Use 'localhost' for web/emulator, or your PC's IP for physical device.
+const API_BASE_URL = 'http://192.168.29.28:3000'; // <-- CHANGE THIS to your PC's IP address
 
 export default function LoginScreen({ navigation }) {
-  const [uid, setUid] = useState('');
-  const [mobile, setMobile] = useState('');
+  const { pregnancyId, setPregnancyId } = usePregnancy();
   const [error, setError] = useState('');
-  const [showMobile, setShowMobile] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (!uid.trim() || !mobile.trim()) {
-      setError('Please enter your Pregnancy UID and Mobile Number.');
+  const handleLogin = async () => {
+    if (!pregnancyId.trim()) {
+      setError('Please enter your Pregnancy ID.');
       return;
     }
     setError('');
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/registration/${pregnancyId}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Login response:', data);
+        if (data) {
+          setPregnancyId(pregnancyId);
+          navigation.replace('Main');
+        } else {
+          setError('Invalid Pregnancy ID.');
+        }
+      } else {
+        setError('Invalid Pregnancy ID.');
+      }
+    } catch (error) {
+      setError('An error occurred. Please try again.');
+    } finally {
       setLoading(false);
-      navigation.replace('Main');
-    }, 1200); // Simulate loading
+    }
   };
 
   return (
@@ -65,51 +82,23 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.inputLabel}>Pregnancy UID</Text>
                 <View style={styles.inputRow}>
                   <Ionicons name="key-outline" size={20} color="#4f8cff" style={styles.icon} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter your 12-digit UID"
-                    placeholderTextColor="#b0c4de"
-                    value={uid}
-                    onChangeText={setUid}
-                    autoCapitalize="characters"
-                    maxLength={12}
-                  />
-                  {uid.length > 0 && (
-                    <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                  )}
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your Pregnancy ID"
+                placeholderTextColor="#b0c4de"
+                value={pregnancyId}
+                onChangeText={setPregnancyId}
+                autoCapitalize="none"
+              />
+              {pregnancyId.length > 0 && (
+                <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+              )}
                 </View>
                 <Text style={styles.helperText}>
                   UID received via SMS after registration
                 </Text>
               </View>
 
-              {/* Mobile Input */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Mobile Number</Text>
-                <View style={styles.inputRow}>
-                  <Ionicons name="call-outline" size={20} color="#4f8cff" style={styles.icon} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter your 10-digit mobile"
-                    placeholderTextColor="#b0c4de"
-                    keyboardType="phone-pad"
-                    value={mobile}
-                    onChangeText={setMobile}
-                    maxLength={10}
-                    secureTextEntry={!showMobile}
-                  />
-                  <TouchableOpacity onPress={() => setShowMobile((v) => !v)}>
-                    <MaterialIcons
-                      name={showMobile ? 'visibility' : 'visibility-off'}
-                      size={20}
-                      color="#4f8cff"
-                    />
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.helperText}>
-                  Registered mobile number for OTP verification
-                </Text>
-              </View>
 
               {error ? (
                 <View style={styles.errorContainer}>

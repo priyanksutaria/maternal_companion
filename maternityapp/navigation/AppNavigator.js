@@ -39,8 +39,8 @@ function MainTabNavigator() {
         tabBarLabelStyle: { fontWeight: '600', fontSize: 13, marginBottom: 2 },
       })}
     >
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="Reports" component={ReportsScreen} />
+      <Tab.Screen name="Dashboard" component={DashboardScreen} initialParams={{ pregnancyId: null }} />
+      <Tab.Screen name="Reports" component={ReportsScreen} initialParams={{ pregnancyId: null }} />
       <Tab.Screen name="AI Health Bot" component={AIHealthBotScreen} options={{ title: 'AI Health Bot' }} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>

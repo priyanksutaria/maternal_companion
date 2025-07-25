@@ -3,8 +3,11 @@ import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+
 import AppNavigator from './navigation/AppNavigator';
 import { AuthProvider } from './context/AuthContext';
+import { PregnancyProvider } from './context/PregnancyContext';
+
 
 export default function App() {
   useEffect(() => {
@@ -14,9 +17,11 @@ export default function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <AppNavigator />
-    </AuthProvider>
+    <PregnancyProvider>
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
+    </PregnancyProvider>
   );
 }
 

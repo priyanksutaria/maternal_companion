@@ -1,87 +1,51 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-
-// Enhanced mock data with more details
-const reports = [
-  {
-    id: '1',
-    title: 'ANC Visit 1',
-    type: 'ANC',
-    date: '2025-05-10',
-    week: '12 weeks',
-    doctor: 'Dr. Priya Sharma',
-    location: 'Gandhi PHC Center',
-    status: 'completed',
-    nextVisit: '2025-06-07',
-    summary: 'Normal development, baby heartbeat detected',
-    tests: ['Blood Pressure', 'Weight Check', 'Urine Test'],
-    recommendations: ['Continue folic acid', 'Drink plenty of water', 'Light exercise']
-  },
-  {
-    id: '2',
-    title: 'Lab Report - Blood Work',
-    type: 'Lab',
-    date: '2025-06-15',
-    week: '17 weeks',
-    doctor: 'Dr. Amit Patel',
-    location: 'City Lab Center',
-    status: 'reviewed',
-    results: {
-      hemoglobin: '11.2 g/dL (Normal)',
-      bloodSugar: '95 mg/dL (Normal)',
-      ironLevel: 'Slightly Low'
-    },
-    recommendations: ['Iron supplements prescribed', 'Iron-rich foods recommended']
-  },
-  {
-    id: '3',
-    title: 'Prescription - Iron & Vitamins',
-    type: 'Rx',
-    date: '2025-07-01',
-    week: '20 weeks',
-    doctor: 'Dr. Priya Sharma',
-    location: 'Gandhi PHC Center',
-    status: 'active',
-    medicines: [
-      { name: 'Iron Tablet', dosage: '1 tablet daily after meals', duration: '30 days' },
-      { name: 'Folic Acid', dosage: '1 tablet daily', duration: '30 days' },
-      { name: 'Calcium', dosage: '1 tablet at bedtime', duration: '30 days' }
-    ]
-  },
-  {
-    id: '4',
-    title: 'Ultrasound Report',
-    type: 'Ultrasound',
-    date: '2025-07-10',
-    week: '21 weeks',
-    doctor: 'Dr. Meera Joshi',
-    location: 'Radiology Center',
-    status: 'completed',
-    findings: 'Baby developing normally, estimated weight 350g',
-    gender: 'Available on request',
-    nextScan: '2025-09-05'
-  }
-];
 
 const typeIcon = {
   ANC: { icon: 'calendar-check', color: '#4f8cff', bg: '#e3f0ff' },
   Lab: { icon: 'flask-outline', color: '#81c784', bg: '#e8f5e8' },
   Rx: { icon: 'pill', color: '#e57373', bg: '#ffeaea' },
   Ultrasound: { icon: 'monitor-heart', color: '#ba68c8', bg: '#f3e5f5' },
+  Report: { icon: 'file-document-outline', color: '#ff9800', bg: '#fff3e0' },
 };
 
 const statusColors = {
   completed: '#4caf50',
   active: '#2196f3',
   reviewed: '#ff9800',
-  pending: '#f44336'
+  pending: '#f44336',
+  scheduled: '#9e9e9e',
 };
 
-export default function ReportsScreen() {
+export default function ReportsScreen({ route }) {
+  const { pregnancyId } = route.params;
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await fetch(`http://192.168.29.28:3000/report/byPregnancy/${pregnancyId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setReports(data.reports);
+        } else {
+          setError('Failed to fetch reports.');
+        }
+      } catch (error) {
+        setError('An error occurred while fetching reports.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [pregnancyId]);
 
   const openReportDetail = (report) => {
     setSelectedReport(report);
@@ -89,34 +53,34 @@ export default function ReportsScreen() {
   };
 
   const renderReportCard = ({ item }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.reportCard}
       onPress={() => openReportDetail(item)}
       activeOpacity={0.7}
     >
       <View style={styles.cardHeader}>
-        <View style={[styles.reportIconWrap, { backgroundColor: typeIcon[item.type]?.bg }]}>
+        <View style={[styles.reportIconWrap, { backgroundColor: typeIcon['Report']?.bg }]}>
           <MaterialCommunityIcons
-            name={typeIcon[item.type]?.icon || 'file-document-outline'}
+            name={typeIcon['Report']?.icon || 'file-document-outline'}
             size={28}
-            color={typeIcon[item.type]?.color || '#4f8cff'}
+            color={typeIcon['Report']?.color || '#4f8cff'}
           />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.reportTitle}>{item.title}</Text>
-          <Text style={styles.reportWeek}>{item.week}</Text>
-          <Text style={styles.reportMeta}>{item.date} • {item.doctor}</Text>
+          <Text style={styles.reportTitle}>Report</Text>
+          <Text style={styles.reportWeek}>{item.data.analyzeForm.gestational_age_weeks} weeks</Text>
+          <Text style={styles.reportMeta}>{new Date(item.createdAt).toLocaleDateString()}</Text>
         </View>
         <View style={styles.statusContainer}>
-          <View style={[styles.statusBadge, { backgroundColor: statusColors[item.status] }]}>
-            <Text style={styles.statusText}>{item.status}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: statusColors['completed'] }]}>
+            <Text style={styles.statusText}>Completed</Text>
           </View>
         </View>
       </View>
-      
+
       <View style={styles.cardContent}>
         <Text style={styles.summaryText}>
-          {item.summary || item.findings || `${item.medicines?.length || 0} medicines prescribed`}
+          {item.data.analysis.alerts.join(', ')}
         </Text>
         
         <View style={styles.actionRow}>
@@ -153,67 +117,42 @@ export default function ReportsScreen() {
           <ScrollView style={styles.modalContent}>
             <View style={styles.detailSection}>
               <Text style={styles.detailLabel}>Date & Week</Text>
-              <Text style={styles.detailValue}>{selectedReport?.date} • {selectedReport?.week}</Text>
+              <Text style={styles.detailValue}>{new Date(selectedReport?.createdAt).toLocaleDateString()} • {selectedReport?.data.analyzeForm.gestational_age_weeks} weeks</Text>
             </View>
-            
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Doctor</Text>
-              <Text style={styles.detailValue}>{selectedReport?.doctor}</Text>
-            </View>
-            
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Location</Text>
-              <Text style={styles.detailValue}>{selectedReport?.location}</Text>
-            </View>
-            
-            {selectedReport?.summary && (
+
+            {selectedReport?.data.analysis.alerts && (
               <View style={styles.detailSection}>
-                <Text style={styles.detailLabel}>Summary</Text>
-                <Text style={styles.detailValue}>{selectedReport.summary}</Text>
-              </View>
-            )}
-            
-            {selectedReport?.results && (
-              <View style={styles.detailSection}>
-                <Text style={styles.detailLabel}>Test Results</Text>
-                {Object.entries(selectedReport.results).map(([key, value]) => (
-                  <View key={key} style={styles.resultRow}>
-                    <Text style={styles.resultKey}>{key.charAt(0).toUpperCase() + key.slice(1)}</Text>
-                    <Text style={styles.resultValue}>{value}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            
-            {selectedReport?.medicines && (
-              <View style={styles.detailSection}>
-                <Text style={styles.detailLabel}>Prescribed Medicines</Text>
-                {selectedReport.medicines.map((med, index) => (
-                  <View key={index} style={styles.medicineCard}>
-                    <Text style={styles.medicineName}>{med.name}</Text>
-                    <Text style={styles.medicineDosage}>{med.dosage}</Text>
-                    <Text style={styles.medicineDuration}>Duration: {med.duration}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            
-            {selectedReport?.recommendations && (
-              <View style={styles.detailSection}>
-                <Text style={styles.detailLabel}>Recommendations</Text>
-                {selectedReport.recommendations.map((rec, index) => (
+                <Text style={styles.detailLabel}>Alerts</Text>
+                {selectedReport.data.analysis.alerts.map((alert, index) => (
                   <View key={index} style={styles.recommendationItem}>
-                    <Ionicons name="checkmark-circle" size={16} color="#4caf50" />
+                    <Ionicons name="alert-circle" size={16} color="#f44336" />
+                    <Text style={styles.recommendationText}>{alert}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {selectedReport?.data.analysis.dietary_recommendations && (
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Dietary Recommendations</Text>
+                {selectedReport.data.analysis.dietary_recommendations.map((rec, index) => (
+                  <View key={index} style={styles.recommendationItem}>
+                    <Ionicons name="restaurant-outline" size={16} color="#4caf50" />
                     <Text style={styles.recommendationText}>{rec}</Text>
                   </View>
                 ))}
               </View>
             )}
-            
-            {selectedReport?.nextVisit && (
-              <View style={styles.nextVisitCard}>
-                <Ionicons name="calendar-outline" size={20} color="#4f8cff" />
-                <Text style={styles.nextVisitText}>Next Visit: {selectedReport.nextVisit}</Text>
+
+            {selectedReport?.data.analysis.supplement_recommendations && (
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Supplement Recommendations</Text>
+                {selectedReport.data.analysis.supplement_recommendations.map((rec, index) => (
+                  <View key={index} style={styles.recommendationItem}>
+                    <Ionicons name="medkit-outline" size={16} color="#2196f3" />
+                    <Text style={styles.recommendationText}>{rec}</Text>
+                  </View>
+                ))}
               </View>
             )}
           </ScrollView>
@@ -222,6 +161,14 @@ export default function ReportsScreen() {
     </Modal>
   );
 
+  if (loading) {
+    return <ActivityIndicator size="large" color="#4f8cff" style={{ flex: 1, justifyContent: 'center' }} />;
+  }
+
+  if (error) {
+    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text>{error}</Text></View>;
+  }
+
   return (
     <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
       <View style={styles.container}>
@@ -229,7 +176,7 @@ export default function ReportsScreen() {
           <Text style={styles.title}>My Health Reports</Text>
           <Text style={styles.subtitle}>Track your pregnancy journey</Text>
         </View>
-        
+
         <View style={styles.summaryCards}>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryNumber}>{reports.length}</Text>
@@ -237,21 +184,21 @@ export default function ReportsScreen() {
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryNumber}>
-              {reports.filter(r => r.status === 'completed').length}
+              {reports.length}
             </Text>
             <Text style={styles.summaryLabel}>Completed</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryNumber}>
-              {reports.filter(r => r.status === 'active').length}
+              0
             </Text>
             <Text style={styles.summaryLabel}>Active</Text>
           </View>
         </View>
-        
+
         <FlatList
           data={reports}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item._id}
           contentContainerStyle={{ paddingBottom: 100 }}
           renderItem={renderReportCard}
           showsVerticalScrollIndicator={false}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createReport, analyzeReport, predictPregnancyRisk, predictFetalRisk, markAncVisit } from '../../api';
 import ReportView from './ReportView';
 import { useNavigate } from 'react-router-dom';
+import Tesseract from 'tesseract.js';
 
 interface VisitReportFormProps {
   visit: any;
@@ -17,7 +18,7 @@ const analyzeFields = [
   { name: 'tsat', label: 'TSAT', type: 'number' },
   { name: 'sbp', label: 'Systolic BP', type: 'number' },
   { name: 'dbp', label: 'Diastolic BP', type: 'number' },
-  { name: 'proteinuria', label: 'Proteinuria', type: 'number' },
+  { name: 'proteinuria', label: 'Proteinuria', type: 'text' }, // changed from number to text
   { name: 'ogtt_f', label: 'OGTT Fasting', type: 'number' },
   { name: 'ogtt_1h', label: 'OGTT 1h', type: 'number' },
   { name: 'ogtt_2h', label: 'OGTT 2h', type: 'number' },
@@ -92,6 +93,12 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
   const [activeTab, setActiveTab] = useState<'analyze' | 'preg' | 'fetal'>('analyze');
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [ocrFile, setOcrFile] = useState<File | null>(null);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const [ocrText, setOcrText] = useState<string | null>(null);
+  const [symptomInput, setSymptomInput] = useState('');
+  const [conditionInput, setConditionInput] = useState('');
 
   const visits = patient && patient.visits ? patient.visits : [];
 
@@ -135,9 +142,78 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
     }
   };
 
+  // Add symptom
+  const handleAddSymptom = (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent<HTMLButtonElement>) => {
+    if (
+      (e as React.KeyboardEvent).key === 'Enter' || (e as React.MouseEvent).type === 'click'
+    ) {
+      const value = symptomInput.trim();
+      if (value && !analyzeForm.sysmptoms.includes(value)) {
+        setAnalyzeForm((prev: any) => ({ ...prev, sysmptoms: [...(prev.sysmptoms || []), value] }));
+        setSymptomInput('');
+      }
+    }
+  };
+  // Remove symptom
+  const handleRemoveSymptom = (sym: string) => {
+    setAnalyzeForm((prev: any) => ({ ...prev, sysmptoms: prev.sysmptoms.filter((s: string) => s !== sym) }));
+  };
+  // Add condition
+  const handleAddCondition = (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent<HTMLButtonElement>) => {
+    if (
+      (e as React.KeyboardEvent).key === 'Enter' || (e as React.MouseEvent).type === 'click'
+    ) {
+      const value = conditionInput.trim();
+      if (value && !analyzeForm.conditions.includes(value)) {
+        setAnalyzeForm((prev: any) => ({ ...prev, conditions: [...(prev.conditions || []), value] }));
+        setConditionInput('');
+      }
+    }
+  };
+  // Remove condition
+  const handleRemoveCondition = (cond: string) => {
+    setAnalyzeForm((prev: any) => ({ ...prev, conditions: prev.conditions.filter((c: string) => c !== cond) }));
+  };
+
+  // Sanitize analyzeForm before sending to backend
+  const sanitizeAnalyzeForm = (form: any) => {
+    const sanitized: any = {};
+    for (const key in form) {
+      if (Array.isArray(form[key])) {
+        sanitized[key] = form[key];
+      } else if (form[key] === '' || form[key] == null) {
+        // skip
+      } else if (key === 'proteinuria') {
+        if (typeof form[key] === 'string') {
+          const plusMatch = form[key].match(/^\s*([+]{1,3})\s*$/);
+          if (plusMatch) {
+            sanitized[key] = plusMatch[1].length;
+          } else if (!isNaN(form[key])) {
+            sanitized[key] = Number(form[key]);
+          }
+          // else skip if not a valid number or +++
+        } else if (typeof form[key] === 'number') {
+          sanitized[key] = form[key];
+        }
+        // else skip
+      } else if (
+        typeof form[key] === 'string' &&
+        !isNaN(form[key]) &&
+        form[key].trim() !== ''
+      ) {
+        sanitized[key] = Number(form[key]);
+      } else {
+        sanitized[key] = form[key];
+      }
+    }
+    return sanitized;
+  };
+
   // Prediction handlers
   const handleAnalyze = async () => {
-    const res = await analyzeReport({ data: analyzeForm });
+    const sanitized = sanitizeAnalyzeForm(analyzeForm);
+    console.log('Sending to backend:', sanitized); // <-- Add this line
+    const res = await analyzeReport({ data: sanitized });
     setAnalysis(res);
   };
 
@@ -196,6 +272,168 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
     }
   };
 
+  // Helper: Map possible OCR field names to form field names (with regex for variants)
+  const ocrFieldRegexMap: Array<{ regex: RegExp, field: string, valueType?: 'number' | 'string' | 'bool' }> = [
+    { regex: /hemoglobin\s*\(1st.*?\)/i, field: 'hb_1st', valueType: 'number' },
+    { regex: /hemoglobin\s*\(2nd.*?\)/i, field: 'hb_2nd', valueType: 'number' },
+    { regex: /hemoglobin\s*\(3rd.*?\)/i, field: 'hb_3rd', valueType: 'number' },
+    { regex: /hemoglobin(?!.*\(.*?\))/i, field: 'hb_1st', valueType: 'number' }, // fallback
+    { regex: /serum ferritin/i, field: 'ferritin', valueType: 'number' },
+    { regex: /transferrin saturation.*tsat/i, field: 'tsat', valueType: 'number' },
+    { regex: /tsat/i, field: 'tsat', valueType: 'number' },
+    { regex: /systolic bp/i, field: 'sbp', valueType: 'number' },
+    { regex: /diastolic bp/i, field: 'dbp', valueType: 'number' },
+    { regex: /proteinuria/i, field: 'proteinuria', valueType: 'string' },
+    { regex: /ogtt.*fasting/i, field: 'ogtt_f', valueType: 'number' },
+    { regex: /ogtt.*1 ?hour/i, field: 'ogtt_1h', valueType: 'number' },
+    { regex: /ogtt.*2 ?hour/i, field: 'ogtt_2h', valueType: 'number' },
+    { regex: /tsh.*1st.*trimester/i, field: 'tsh_1', valueType: 'number' },
+    { regex: /tsh.*2nd.*trimester/i, field: 'tsh_2', valueType: 'number' },
+    { regex: /tsh.*3rd.*trimester/i, field: 'tsh_3', valueType: 'number' },
+    { regex: /free t4.*ft4/i, field: 'ft4', valueType: 'number' },
+    { regex: /tpo antibodies/i, field: 'tpo_ab', valueType: 'bool' },
+    { regex: /gestational age/i, field: 'gestational_age_weeks', valueType: 'number' },
+    { regex: /bmi/i, field: 'bmi', valueType: 'number' },
+    { regex: /pre-pregnancy weight/i, field: 'pre_pregnancy_weight', valueType: 'number' },
+    { regex: /current weight/i, field: 'current_weight', valueType: 'number' },
+    // Add more as needed
+  ];
+
+  // Helper: Extract value from a line (number, 'Positive', 'Negative', '+++', etc.)
+  function extractOcrValue(line: string, valueType: 'number' | 'string' | 'bool' = 'number') {
+    if (valueType === 'bool') {
+      if (/positive/i.test(line)) return true;
+      if (/negative/i.test(line)) return false;
+      return undefined;
+    }
+    if (valueType === 'string') {
+      // For proteinuria, extract +++ or similar
+      const plusMatch = line.match(/([+]{1,3}|\(\d+\))/);
+      if (plusMatch) return plusMatch[1];
+      // fallback: return first word after colon
+      const colonSplit = line.split(':');
+      if (colonSplit.length > 1) return colonSplit[1].split(' ')[1] || colonSplit[1].trim();
+      return undefined;
+    }
+    // Default: extract first number (int or float)
+    const numMatch = line.match(/([-+]?[0-9]*\.?[0-9]+)/);
+    if (numMatch) return numMatch[1];
+    return undefined;
+  }
+
+  // Helper: Parse extracted text and map to analyzeForm fields
+  function parseOcrTextToForm(text: string) {
+    const newForm: any = { ...analyzeForm };
+    const lines = text.split(/\n|\r/).map(l => l.trim()).filter(Boolean);
+    let currentSection: 'symptoms' | 'conditions' | null = null;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Section headers
+      if (/^reported symptoms/i.test(line)) {
+        currentSection = 'symptoms';
+        continue;
+      }
+      if (/^clinical impression/i.test(line)) {
+        currentSection = 'conditions';
+        continue;
+      }
+      // Bullet points under section
+      if (currentSection && /^-\s+(.+)/.test(line)) {
+        const value = line.replace(/^-\s+/, '').trim();
+        if (currentSection === 'symptoms') {
+          if (value && (!newForm.sysmptoms || !newForm.sysmptoms.includes(value))) {
+            newForm.sysmptoms = [...(newForm.sysmptoms || []), value];
+          }
+        } else if (currentSection === 'conditions') {
+          if (value && (!newForm.conditions || !newForm.conditions.includes(value))) {
+            newForm.conditions = [...(newForm.conditions || []), value];
+          }
+        }
+        continue;
+      }
+      // Reset section if a blank line or new unrelated section
+      if (line === '' || /^[A-Za-z ]+:$/.test(line)) {
+        currentSection = null;
+      }
+      // Field extraction as before
+      for (const { regex, field, valueType } of ocrFieldRegexMap) {
+        if (regex.test(line)) {
+          const value = extractOcrValue(line, valueType);
+          if (typeof value !== 'undefined') newForm[field] = value;
+        }
+      }
+    }
+    // Also support +, *, and colon-based symptoms/conditions as before
+    lines.forEach(line => {
+      const plusMatch = line.match(/\+\s*([A-Za-z0-9 ,]+)/);
+      if (plusMatch) {
+        const found = plusMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+        found.forEach(sym => {
+          if (sym && (!newForm.sysmptoms || !newForm.sysmptoms.includes(sym))) {
+            newForm.sysmptoms = [...(newForm.sysmptoms || []), sym];
+          }
+        });
+      }
+      const colonMatch = line.match(/symptoms?:\s*([A-Za-z0-9 ,]+)/i);
+      if (colonMatch) {
+        const found = colonMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+        found.forEach(sym => {
+          if (sym && (!newForm.sysmptoms || !newForm.sysmptoms.includes(sym))) {
+            newForm.sysmptoms = [...(newForm.sysmptoms || []), sym];
+          }
+        });
+      }
+    });
+    lines.forEach(line => {
+      const starMatch = line.match(/\*\s*([A-Za-z0-9 ,]+)/);
+      if (starMatch) {
+        const found = starMatch[1].split(',').map(c => c.trim()).filter(Boolean);
+        found.forEach(cond => {
+          if (cond && (!newForm.conditions || !newForm.conditions.includes(cond))) {
+            newForm.conditions = [...(newForm.conditions || []), cond];
+          }
+        });
+      }
+      const colonMatch = line.match(/conditions?:\s*([A-Za-z0-9 ,]+)/i);
+      if (colonMatch) {
+        const found = colonMatch[1].split(',').map(c => c.trim()).filter(Boolean);
+        found.forEach(cond => {
+          if (cond && (!newForm.conditions || !newForm.conditions.includes(cond))) {
+            newForm.conditions = [...(newForm.conditions || []), cond];
+          }
+        });
+      }
+    });
+    return newForm;
+  }
+
+  // OCR handler
+  const handleOcrFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setOcrError(null);
+    setOcrText(null);
+    if (e.target.files && e.target.files[0]) {
+      setOcrFile(e.target.files[0]);
+    }
+  };
+
+  const handleOcrExtract = async () => {
+    if (!ocrFile) return;
+    setOcrLoading(true);
+    setOcrError(null);
+    setOcrText(null);
+    try {
+      const { data: { text } } = await Tesseract.recognize(ocrFile, 'eng');
+      setOcrText(text);
+      // Autofill form
+      const newForm = parseOcrTextToForm(text);
+      setAnalyzeForm(newForm);
+    } catch (err) {
+      setOcrError('Failed to extract text. Try a clearer image.');
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
   if (report) {
     const handleMarkCompleted = async () => {
       try {
@@ -236,24 +474,6 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
       <button onClick={onBack} className="mb-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
         &larr; Back to Patient Details
       </button>
-      {/* ANC Visits List */}
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-blue-800 mb-2">All ANC Visits</h3>
-        {Array.isArray(visits) && visits.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {visits.map((v: any) => (
-              <div key={v._id} className="p-3 bg-blue-50 border border-blue-200 rounded shadow">
-                <div className="font-semibold text-blue-900">{v.visitNumber}</div>
-                <div className="text-sm text-gray-700">Date: {new Date(v.scheduledDate).toLocaleDateString()}</div>
-                <div className="text-xs text-gray-600">Status: {v.status}</div>
-                {v.highRiskFlag && <div className="text-xs text-red-600 font-bold">High Risk</div>}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-gray-500">No ANC visits scheduled.</div>
-        )}
-      </div>
       <div className="bg-white p-6 shadow-lg">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">ANC Visit Report - Visit #{visit.visitNumber}</h2>
         {/* Tabs */}
@@ -279,65 +499,125 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
         </div>
         {/* Tab Content */}
         {activeTab === 'analyze' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {analyzeFields.map(field => (
-              <div key={field.name}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
-                {field.type === 'checkbox' ? (
-                  <input
-                    name={field.name}
-                    type="checkbox"
-                    checked={!!analyzeForm[field.name]}
-                    onChange={handleInput}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                  />
-                ) : (
-                  <input
-                    name={field.name}
-                    type={field.type}
-                    step={field.step}
-                    value={analyzeForm[field.name] || ''}
-                    onChange={handleInput}
-                    className="w-full px-3 py-2 border border-gray-300"
-                  />
-                )}
-              </div>
-            ))}
-            {/* Symptoms Multi-select */}
-            <div className="md:col-span-3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Symptoms</label>
-              <div className="flex flex-wrap gap-2">
-                {analyzeSymptoms.map(sym => (
-                  <label key={sym} className={`px-3 py-1 rounded-full border cursor-pointer ${analyzeForm.sysmptoms?.includes(sym) ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-300'}`}>
+          <>
+            {/* OCR Upload Option */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Upload Report for OCR (Image/PDF)</label>
+              <input type="file" accept="image/*,.pdf" onChange={handleOcrFileChange} />
+              <button
+                type="button"
+                className="ml-2 px-3 py-1 bg-blue-500 text-white rounded disabled:bg-gray-400"
+                onClick={handleOcrExtract}
+                disabled={!ocrFile || ocrLoading}
+              >
+                {ocrLoading ? 'Extracting...' : 'Extract & Autofill'}
+              </button>
+              {ocrError && <div className="text-red-600 mt-1">{ocrError}</div>}
+              {ocrText && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-blue-700">Show Extracted Text</summary>
+                  <pre className="bg-gray-100 p-2 text-xs whitespace-pre-wrap">{ocrText}</pre>
+                </details>
+              )}
+              <div className="my-4 text-center font-semibold text-gray-500">OR</div>
+            </div>
+            {/* Manual Form Entry */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {analyzeFields.map(field => (
+                <div key={field.name}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
+                  {field.type === 'checkbox' ? (
                     <input
+                      name={field.name}
                       type="checkbox"
-                      className="hidden"
-                      checked={analyzeForm.sysmptoms?.includes(sym)}
-                      onChange={() => handleMultiSelect('sysmptoms', sym)}
+                      checked={!!analyzeForm[field.name]}
+                      onChange={handleInput}
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded"
                     />
-                    {sym}
-                  </label>
-                ))}
+                  ) : (
+                    <input
+                      name={field.name}
+                      type={field.type}
+                      step={field.step}
+                      value={analyzeForm[field.name] || ''}
+                      onChange={handleInput}
+                      className="w-full px-3 py-2 border border-gray-300"
+                    />
+                  )}
+                </div>
+              ))}
+              {/* Symptoms Tag Input */}
+              <div className="md:col-span-3 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Symptoms</label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={symptomInput}
+                    onChange={e => setSymptomInput(e.target.value)}
+                    onKeyDown={handleAddSymptom}
+                    placeholder="Type symptom and press Enter"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded"
+                  />
+                  <button
+                    type="button"
+                    className="px-3 py-2 bg-blue-500 text-white rounded"
+                    onClick={handleAddSymptom}
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {analyzeForm.sysmptoms?.map((sym: string) => (
+                    <span key={sym} className="flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                      {sym}
+                      <button
+                        type="button"
+                        className="ml-2 text-blue-700 hover:text-red-600 font-bold"
+                        onClick={() => handleRemoveSymptom(sym)}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {/* Conditions Tag Input */}
+              <div className="md:col-span-3 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Conditions</label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={conditionInput}
+                    onChange={e => setConditionInput(e.target.value)}
+                    onKeyDown={handleAddCondition}
+                    placeholder="Type condition and press Enter"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded"
+                  />
+                  <button
+                    type="button"
+                    className="px-3 py-2 bg-blue-500 text-white rounded"
+                    onClick={handleAddCondition}
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {analyzeForm.conditions?.map((cond: string) => (
+                    <span key={cond} className="flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                      {cond}
+                      <button
+                        type="button"
+                        className="ml-2 text-blue-700 hover:text-red-600 font-bold"
+                        onClick={() => handleRemoveCondition(cond)}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-            {/* Conditions Multi-select */}
-            <div className="md:col-span-3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Conditions</label>
-              <div className="flex flex-wrap gap-2">
-                {analyzeConditions.map(cond => (
-                  <label key={cond} className={`px-3 py-1 rounded-full border cursor-pointer ${analyzeForm.conditions?.includes(cond) ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-300'}`}>
-                    <input
-                      type="checkbox"
-                      className="hidden"
-                      checked={analyzeForm.conditions?.includes(cond)}
-                      onChange={() => handleMultiSelect('conditions', cond)}
-                    />
-                    {cond}
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
+          </>
         )}
         {activeTab === 'preg' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

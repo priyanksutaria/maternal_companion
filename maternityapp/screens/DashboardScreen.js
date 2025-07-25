@@ -1,32 +1,69 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { usePregnancy } from '../context/PregnancyContext';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5, AntDesign, Entypo } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen({ navigation }) {
+  const { pregnancyId } = usePregnancy();
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [supplementsTaken, setSupplementsTaken] = useState({ 1: false, 2: true, 3: false });
   const [waterIntake, setWaterIntake] = useState(6);
   const [todayWeight, setTodayWeight] = useState(null);
 
+  useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        const response = await fetch(`http://192.168.29.28:3000/report/byPregnancy/${pregnancyId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.reports && data.reports.length > 0) {
+            setReport(data.reports[0]); // Get the latest report
+          } else {
+            setError('No reports found.');
+          }
+        } else {
+          setError('Failed to fetch report.');
+        }
+      } catch (error) {
+        setError('An error occurred while fetching the report.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReport();
+  }, [pregnancyId]);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#4f8cff" style={{ flex: 1, justifyContent: 'center' }} />;
+  }
+
+  if (error) {
+    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text>{error}</Text></View>;
+  }
+
   // Enhanced mock data
-  const name = 'Priya';
-  const week = 18;
-  const dueDate = '2025-10-15';
-  const nextVisit = '2025-07-25';
-  const lastVisitDate = '2025-06-28';
-  const babySize = 'Sweet Potato';
-  const babySizeLength = '14 cm';
-  const babyWeight = '190 grams';
-  const currentWeight = '58 kg';
-  const weightGain = '+3.5 kg';
-  const bloodPressure = '110/70 mmHg';
-  const ironLevel = 'Normal';
+  const name = report?.data.patientDetails.personal.name || 'Patient';
+  const week = report?.data.analyzeForm.gestational_age_weeks || 0;
+  const dueDate = report?.data.patientDetails.menstrualHistory.edd ? new Date(report.data.patientDetails.menstrualHistory.edd).toLocaleDateString() : 'N/A';
+  const nextVisit = report?.data.visitDetails.scheduledDate ? new Date(report.data.visitDetails.scheduledDate).toLocaleDateString() : 'N/A';
+  const lastVisitDate = report?.createdAt ? new Date(report.createdAt).toLocaleDateString() : 'N/A';
+  const babySize = 'Sweet Potato'; // This is mock data
+  const babySizeLength = '14 cm'; // This is mock data
+  const babyWeight = '190 grams'; // This is mock data
+  const currentWeight = `${report?.data.analyzeForm.current_weight} kg` || 'N/A';
+  const weightGain = '+3.5 kg'; // This is mock data
+  const bloodPressure = `${report?.data.analyzeForm.sbp}/${report?.data.analyzeForm.dbp} mmHg` || 'N/A';
+  const ironLevel = report?.data.analysis.anemia ? 'Low' : 'Normal';
   const targetWaterIntake = 8;
   
-  const weeklyMilestone = "Your baby's hearing is developing and they can hear your voice!";
-  const todayTip = "Walking for 30 minutes daily helps with circulation and prepares your body for labor.";
+  const weeklyMilestone = "Your baby's hearing is developing and they can hear your voice!"; // This is mock data
+  const todayTip = "Walking for 30 minutes daily helps with circulation and prepares your body for labor."; // This is mock data
   
   const mealPlan = [
     {
@@ -351,7 +388,7 @@ export default function DashboardScreen({ navigation }) {
               </LinearGradient>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('Reports')}>
+            <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('Reports', { pregnancyId })}>
               <LinearGradient colors={['#4ecdc4', '#44bd87']} style={styles.quickGradient}>
                 <Ionicons name="document-text-outline" size={26} color="#fff" />
                 <Text style={styles.quickText}>Reports</Text>
