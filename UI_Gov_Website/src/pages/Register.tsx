@@ -15,153 +15,153 @@ export default function Register() {
   const [completedTabs, setCompletedTabs] = useState<number[]>([0]);
   const [form, setForm] = useState({
     personal: {
-      name: '', 
-      age: '', 
-      husbandName: '',
-      religion: '',
-      caste: '',
-      socialCategory: '',
-      address: '', 
-      contact: '', 
-      aadhaarNumber: '', 
-      abhaNumber: '',
-      bankAccount: '',
-      education: '',
-      husbandEducation: '',
-      occupation: '',
-      husbandOccupation: '',
-      socioeconomicStatus: '',
-      fatherAge: '',
-      parentalConsanguinity: '',
-      fcmToken: '',
-      emergencyNumber: ''
-    },
-    obstetricHistory: {
-      gravida: '',
-      para: '',
-      liveChildren: '',
-      abortions: '',
-      stillbirths: '',
-      ectopicPregnancy: false,
-      previousCesarean: false,
-      complications: '',
-      interPregnancyInterval: '',
-      previousFetalAnomaly: '',
-      previousPregnancyTerminationReason: ''
-    },
-    menstrualHistory: {
-      ageAtMenarche: '',
-      cycleRegularity: '',
-      lmp: '',
-      edd: '',
-      disorders: ''
-    },
-    medicalHistory: {
-      hypertension: false,
-      diabetes: false,
-      asthma: false,
-      epilepsy: false,
-      thyroid: false,
-      tuberculosis: false,
-      heartDisease: false,
-      hiv: false,
-      hepatitis: false,
-      anemia: false,
-      otherChronicIllness: '',
-      previousTransfusions: false,
-      pastHospitalizations: '',
-      highRiskMedications: '',
-      uncontrolledDiabetesOrObesity: false,
-      vitaminDeficiencies: ''
-    },
-    familyHistory: {
-      geneticDisorders: '',
-      twinPregnancies: false,
-      familyDiabetes: false,
-      familyHypertension: false,
-      familyCardiacDisease: false,
-      familyMentalIllness: false,
-      consanguineousMarriage: false,
-      repeatedMiscarriages: false,
-      inheritedConditions: '',
-      familyCleftOrDefect: ''
-    },
-    obstetricRiskFactors: {
-      pretermLabor: false,
-      iugr: false,
-      eclampsia: false,
-      hemorrhage: false,
-      prolongedLabor: false,
-      lowBirthWeight: false,
-      neonatalDeath: false,
-      congenitalAnomalies: false,
-      rhIncompatibility: false,
-      priorPrenatalTests: '',
-      priorBabyDisorder: ''
-    },
-    immunizationHistory: {
-      ttStatus: '',
-      ifaIntake: false,
-      deworming: false,
-      covidVaccine: false,
-      otherVaccines: '',
-      rubellaCMVScreening: ''
-    },
-    dietAndNutrition: {
-      vegetarian: false,
-      mealsPerDay: '',
-      fruitsAndVegetables: false,
-      ironCalciumFoods: false,
-      teaCoffee: false,
-      tobaccoAlcohol: false,
-      preconceptionFolicAcid: false,
-      awarenessOfTeratogens: false
-    },
-    lifestyle: {
-      tobaccoUse: false,
-      alcoholUse: false,
-      narcotics: false,
-      physicalActivity: '',
-      domesticViolence: false,
-      occupationalExposure: ''
-    },
-    environment: {
-      housingType: '',
-      toiletFacility: '',
-      drinkingWaterSource: '',
-      cookingFuel: '',
-      mosquitoBreeding: false,
-      proximityToWaste: false,
-      borewellOrContaminatedWater: false
-    },
-    contraceptiveHistory: {
-      previousUse: false,
-      failureOrComplications: '',
-      intentionToUsePostDelivery: false,
-      emergencyContraception: false
-    },
-    other: {
-      bloodGroup: '',
-      rhType: '',
-      drugOrFoodAllergies: '',
-      maritalAge: '',
-      institutionalDeliveryIntent: false,
-      awarenessOfSchemes: false
-    },
-    abhaId: '',
-    jsyEligibility: {
-      bplStatus: false,
-      caste: '',
-      parity: '',
-      eligible: false
-    },
-    optionalInvestigations: {
-      hemoglobin: '',
-      urineRoutine: '',
-      bloodGroup: '',
-      rhTyping: '',
-      rbs: ''
-    }
+    name: 'Anita Sharma',
+    age: 28,
+    husbandName: 'Rajesh Sharma',
+    religion: 'Hindu',
+    caste: 'Brahmin',
+    socialCategory: 'General',
+    address: '123, Gandhi Nagar, Jaipur, Rajasthan',
+    contact: '+91-9876543210',
+    aadhaarNumber: '1234-5678-9012',
+    abhaNumber: 'ABHA1234567890',
+    bankAccount: '012345678901',
+    education: 'Graduate',
+    husbandEducation: 'Postgraduate',
+    occupation: 'Teacher',
+    husbandOccupation: 'Software Engineer',
+    socioeconomicStatus: 'APL',
+    fatherAge: 58,
+    parentalConsanguinity: 'No',
+    fcmToken: 'fcm_token_example_123',
+    emergencyNumber: 1122334455
+  },
+  obstetricHistory: {
+    gravida: 2,
+    para: 1,
+    liveChildren: 1,
+    abortions: 0,
+    stillbirths: 0,
+    ectopicPregnancy: false,
+    previousCesarean: false,
+    complications: 'None',
+    interPregnancyInterval: '2 years',
+    previousFetalAnomaly: 'No',
+    previousPregnancyTerminationReason: 'N/A'
+  },
+  menstrualHistory: {
+    ageAtMenarche: 13,
+    cycleRegularity: 'Regular',
+    lmp: new Date('2025-07-01'),
+    edd: new Date('2026-04-07'),
+    disorders: 'None'
+  },
+  medicalHistory: {
+    hypertension: false,
+    diabetes: false,
+    asthma: false,
+    epilepsy: false,
+    thyroid: false,
+    tuberculosis: false,
+    heartDisease: false,
+    hiv: false,
+    hepatitis: false,
+    anemia: true,
+    otherChronicIllness: 'None',
+    previousTransfusions: false,
+    pastHospitalizations: 'Appendix surgery in 2020',
+    highRiskMedications: 'None',
+    uncontrolledDiabetesOrObesity: false,
+    vitaminDeficiencies: 'Vitamin D'
+  },
+  familyHistory: {
+    geneticDisorders: 'None',
+    twinPregnancies: false,
+    familyDiabetes: true,
+    familyHypertension: true,
+    familyCardiacDisease: false,
+    familyMentalIllness: false,
+    consanguineousMarriage: false,
+    repeatedMiscarriages: false,
+    inheritedConditions: 'None',
+    familyCleftOrDefect: 'None'
+  },
+  obstetricRiskFactors: {
+    pretermLabor: false,
+    iugr: false,
+    eclampsia: false,
+    hemorrhage: false,
+    prolongedLabor: false,
+    lowBirthWeight: false,
+    neonatalDeath: false,
+    congenitalAnomalies: false,
+    rhIncompatibility: false,
+    priorPrenatalTests: 'Ultrasound',
+    priorBabyDisorder: 'None'
+  },
+  immunizationHistory: {
+    ttStatus: 'Completed',
+    ifaIntake: true,
+    deworming: true,
+    covidVaccine: true,
+    otherVaccines: 'Hepatitis B, Rubella',
+    rubellaCMVScreening: 'Done'
+  },
+  dietAndNutrition: {
+    vegetarian: true,
+    mealsPerDay: 3,
+    fruitsAndVegetables: true,
+    ironCalciumFoods: true,
+    teaCoffee: false,
+    tobaccoAlcohol: false,
+    preconceptionFolicAcid: true,
+    awarenessOfTeratogens: true
+  },
+  lifestyle: {
+    tobaccoUse: false,
+    alcoholUse: false,
+    narcotics: false,
+    physicalActivity: '30 minutes walking daily',
+    domesticViolence: false,
+    occupationalExposure: 'None'
+  },
+  environment: {
+    housingType: 'Pucca',
+    toiletFacility: 'Private indoor toilet',
+    drinkingWaterSource: 'Tap water',
+    cookingFuel: 'LPG',
+    mosquitoBreeding: false,
+    proximityToWaste: false,
+    borewellOrContaminatedWater: false
+  },
+  contraceptiveHistory: {
+    previousUse: true,
+    failureOrComplications: 'None',
+    intentionToUsePostDelivery: true,
+    emergencyContraception: false
+  },
+  other: {
+    bloodGroup: 'B',
+    rhType: 'Positive',
+    drugOrFoodAllergies: 'None',
+    maritalAge: 22,
+    institutionalDeliveryIntent: true,
+    awarenessOfSchemes: true
+  },
+  abhaId: 'ABHA-9876543210',
+  jsyEligibility: {
+    bplStatus: false,
+    caste: 'General',
+    parity: 1,
+    eligible: false
+  },
+  optionalInvestigations: {
+    hemoglobin: 10.5,
+    urineRoutine: 'Normal',
+    bloodGroup: 'B',
+    rhTyping: 'Positive',
+    rbs: 95
+  }
   });
   const [personalDetailsTouched, setPersonalDetailsTouched] = useState(false);
   const [loading, setLoading] = useState(false);
