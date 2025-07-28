@@ -45,9 +45,7 @@ function App() {
             <MainLayout onLoginClick={() => setIsLoginModalOpen(true)} />
           }
         />
-        <Route element={<ProtectedLayout user={user} />}>
           <Route path="/anc" element={<ANCDashboard />} />
-        </Route>
       </Routes>
       <LoginModal
         isOpen={isLoginModalOpen}
