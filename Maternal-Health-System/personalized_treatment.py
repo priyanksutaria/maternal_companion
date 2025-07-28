@@ -423,7 +423,7 @@ if __name__ == "__main__":
         "current_weight": 52, # measured every week
 
         # Liver dysfunction rule
-        'sysmptoms': ['pruritus'],
+        'symptoms': ['pruritus'],
         'conditions': ['preeclampsia'],
     }
 

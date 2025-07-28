@@ -92,9 +92,13 @@ export const predictFetalRisk = async (data: any) => {
   return res.data;
 };
 
-export const analyzeReport = async (data: any) => {
-  const res = await axios.post(`${API_BASE_URL}/report/analyze`, data);
-  return res.data;
+export const analyzeReport = async (payload: { data: any }) => {
+  const response = await axios.post(`${API_BASE_URL}/report/analyze`, payload, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.data;
 };
 
 export const getReportsByPregnancyId = async (pregnancyId: string) => {

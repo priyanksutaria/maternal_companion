@@ -18,7 +18,7 @@ const analyzeFields = [
   { name: 'tsat', label: 'TSAT', type: 'number' },
   { name: 'sbp', label: 'Systolic BP', type: 'number' },
   { name: 'dbp', label: 'Diastolic BP', type: 'number' },
-  { name: 'proteinuria', label: 'Proteinuria', type: 'text' }, // changed from number to text
+  { name: 'proteinuria', label: 'Proteinuria', type: 'number' },
   { name: 'ogtt_f', label: 'OGTT Fasting', type: 'number' },
   { name: 'ogtt_1h', label: 'OGTT 1h', type: 'number' },
   { name: 'ogtt_2h', label: 'OGTT 2h', type: 'number' },
@@ -81,8 +81,7 @@ const fetalFields = [
 ];
 
 export default function VisitReportForm({ visit, patient, onBack }: VisitReportFormProps) {
-  // Use three separate form states
-  const [analyzeForm, setAnalyzeForm] = useState<any>({ sysmptoms: [], conditions: [] });
+  const [analyzeForm, setAnalyzeForm] = useState<any>({ symptoms: [], conditions: [] });
   const [pregForm, setPregForm] = useState<any>({});
   const [fetalForm, setFetalForm] = useState<any>({});
   const [analysis, setAnalysis] = useState<any>(null);
@@ -104,6 +103,7 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
 
   // Check if report already exists for this visit
   React.useEffect(() => {
+    // Replace with your API call to fetch report for this visit
     async function fetchReport() {
       // Example: const existingReport = await getReportByVisitId(visit._id);
       // If you have a report, set it
@@ -112,7 +112,6 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
     fetchReport();
   }, [visit._id]);
 
-  // Input handler for all forms
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, type, value } = e.target;
     if (activeTab === 'analyze') {
@@ -128,8 +127,7 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
     }
   };
 
-  // Multi-select handler for analyze tab
-  const handleMultiSelect = (name: string, value: string) => {
+   const handleMultiSelect = (name: string, value: string) => {
     if (activeTab === 'analyze') {
       setAnalyzeForm((prev: any) => {
         const arr = prev[name] || [];
@@ -142,21 +140,20 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
     }
   };
 
-  // Add symptom
-  const handleAddSymptom = (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent<HTMLButtonElement>) => {
+    const handleAddSymptom = (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent<HTMLButtonElement>) => {
     if (
       (e as React.KeyboardEvent).key === 'Enter' || (e as React.MouseEvent).type === 'click'
     ) {
       const value = symptomInput.trim();
-      if (value && !analyzeForm.sysmptoms.includes(value)) {
-        setAnalyzeForm((prev: any) => ({ ...prev, sysmptoms: [...(prev.sysmptoms || []), value] }));
+      if (value && !analyzeForm.symptoms.includes(value)) {
+        setAnalyzeForm((prev: any) => ({ ...prev, symptoms: [...(prev.symptoms || []), value] }));
         setSymptomInput('');
       }
     }
   };
   // Remove symptom
   const handleRemoveSymptom = (sym: string) => {
-    setAnalyzeForm((prev: any) => ({ ...prev, sysmptoms: prev.sysmptoms.filter((s: string) => s !== sym) }));
+    setAnalyzeForm((prev: any) => ({ ...prev, symptoms: prev.symptoms.filter((s: string) => s !== sym) }));
   };
   // Add condition
   const handleAddCondition = (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent<HTMLButtonElement>) => {
@@ -170,66 +167,74 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
       }
     }
   };
-  // Remove condition
+
+   // Remove condition
   const handleRemoveCondition = (cond: string) => {
     setAnalyzeForm((prev: any) => ({ ...prev, conditions: prev.conditions.filter((c: string) => c !== cond) }));
   };
 
-  // Sanitize analyzeForm before sending to backend
-  const sanitizeAnalyzeForm = (form: any) => {
-    const sanitized: any = {};
-    for (const key in form) {
-      if (Array.isArray(form[key])) {
-        sanitized[key] = form[key];
-      } else if (form[key] === '' || form[key] == null) {
-        // skip
-      } else if (key === 'proteinuria') {
-        if (typeof form[key] === 'string') {
-          const plusMatch = form[key].match(/^\s*([+]{1,3})\s*$/);
-          if (plusMatch) {
-            sanitized[key] = plusMatch[1].length;
-          } else if (!isNaN(form[key])) {
-            sanitized[key] = Number(form[key]);
-          }
-          // else skip if not a valid number or +++
-        } else if (typeof form[key] === 'number') {
-          sanitized[key] = form[key];
+  // Helper function to convert form data to numbers
+  const convertFormDataToNumbers = (formData: any, fieldDefinitions: any[]) => {
+    const convertedData: any = {};
+    
+    fieldDefinitions.forEach(field => {
+      const value = formData[field.name];
+      if (value !== undefined && value !== '') {
+        if (field.type === 'number') {
+          // Convert to number, handle both integers and floats
+          const numValue = field.step ? parseFloat(value) : parseInt(value, 10);
+          convertedData[field.name] = isNaN(numValue) ? 0 : numValue;
+        } else {
+          convertedData[field.name] = value;
         }
-        // else skip
-      } else if (
-        typeof form[key] === 'string' &&
-        !isNaN(form[key]) &&
-        form[key].trim() !== ''
-      ) {
-        sanitized[key] = Number(form[key]);
       } else {
-        sanitized[key] = form[key];
+        // Set default value of 0 for missing numeric fields
+        if (field.type === 'number') {
+          convertedData[field.name] = 0;
+        }
       }
-    }
-    return sanitized;
+    });
+    
+    return convertedData;
   };
 
-  // Prediction handlers
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const handleAnalyze = async () => {
-    const sanitized = sanitizeAnalyzeForm(analyzeForm);
-    console.log('Sending to backend:', sanitized); // <-- Add this line
-    const res = await analyzeReport({ data: sanitized });
+    const res = await analyzeReport({ data: analyzeForm });
     setAnalysis(res);
   };
 
   const handlePregRisk = async () => {
-    const res = await predictPregnancyRisk(pregForm);
-    setPregRisk(res);
+    try {
+      // Convert string values to numbers
+      const convertedData = convertFormDataToNumbers(pregForm, pregFields);
+      console.log('Converted pregnancy data:', convertedData); // Debug log
+      
+      const res = await predictPregnancyRisk(convertedData);
+      setPregRisk(res);
+    } catch (error) {
+      console.error('Pregnancy risk prediction error:', error);
+      alert('Failed to predict pregnancy risk. Please check your input values.');
+    }
   };
 
   const handleFetalRisk = async () => {
-    const res = await predictFetalRisk(fetalForm);
-    setFetalRisk(res);
+    try {
+      // Convert string values to numbers
+      const convertedData = convertFormDataToNumbers(fetalForm, fetalFields);
+      console.log('Converted fetal data:', convertedData); // Debug log
+      
+      const res = await predictFetalRisk(convertedData);
+      setFetalRisk(res);
+    } catch (error) {
+      console.error('Fetal risk prediction error:', error);
+      alert('Failed to predict fetal risk. Please check your input values.');
+    }
   };
 
-  // Save report with all forms and results
   const handleSaveReport = async () => {
     setSaving(true);
+    // Flatten all form fields and include all prediction objects
     console.log(pregRisk);
     const data = {
       analyzeForm,
@@ -238,6 +243,9 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
       analysis,
       pregRisk,
       fetalRisk,
+      // Clinical Summary (Priority)
+      clinical_summary: analysis?.llm_merged_summary || '',
+      // Aggregated recommendations and data
       recommendations: [
         ...(analysis?.supplement_recommendations || []),
         ...(pregRisk?.supplement_recommendations || []),
@@ -253,6 +261,14 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
         ...(pregRisk?.dietary_recommendations || []),
         ...(fetalRisk?.dietary_recommendations || [])
       ],
+      // Additional LLM responses for reference
+      detailed_llm_response: analysis?.llm_response || '',
+      // Clinical indicators
+      clinical_indicators: {
+        anemia: analysis?.anemia || false,
+        gdm: analysis?.gdm || false,
+        thyroid: analysis?.thyroid || false,
+      },
       patientDetails: patient,
       visitDetails: visit,
     };
@@ -272,7 +288,7 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
     }
   };
 
-  // Helper: Map possible OCR field names to form field names (with regex for variants)
+    // Helper: Map possible OCR field names to form field names (with regex for variants)
   const ocrFieldRegexMap: Array<{ regex: RegExp, field: string, valueType?: 'number' | 'string' | 'bool' }> = [
     { regex: /hemoglobin\s*\(1st.*?\)/i, field: 'hb_1st', valueType: 'number' },
     { regex: /hemoglobin\s*\(2nd.*?\)/i, field: 'hb_2nd', valueType: 'number' },
@@ -341,8 +357,8 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
       if (currentSection && /^-\s+(.+)/.test(line)) {
         const value = line.replace(/^-\s+/, '').trim();
         if (currentSection === 'symptoms') {
-          if (value && (!newForm.sysmptoms || !newForm.sysmptoms.includes(value))) {
-            newForm.sysmptoms = [...(newForm.sysmptoms || []), value];
+          if (value && (!newForm.symptoms || !newForm.symptoms.includes(value))) {
+            newForm.symptoms = [...(newForm.symptoms || []), value];
           }
         } else if (currentSection === 'conditions') {
           if (value && (!newForm.conditions || !newForm.conditions.includes(value))) {
@@ -369,8 +385,8 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
       if (plusMatch) {
         const found = plusMatch[1].split(',').map(s => s.trim()).filter(Boolean);
         found.forEach(sym => {
-          if (sym && (!newForm.sysmptoms || !newForm.sysmptoms.includes(sym))) {
-            newForm.sysmptoms = [...(newForm.sysmptoms || []), sym];
+          if (sym && (!newForm.symptoms || !newForm.symptoms.includes(sym))) {
+            newForm.symptoms = [...(newForm.symptoms || []), sym];
           }
         });
       }
@@ -378,8 +394,8 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
       if (colonMatch) {
         const found = colonMatch[1].split(',').map(s => s.trim()).filter(Boolean);
         found.forEach(sym => {
-          if (sym && (!newForm.sysmptoms || !newForm.sysmptoms.includes(sym))) {
-            newForm.sysmptoms = [...(newForm.sysmptoms || []), sym];
+          if (sym && (!newForm.symptoms || !newForm.symptoms.includes(sym))) {
+            newForm.symptoms = [...(newForm.symptoms || []), sym];
           }
         });
       }
@@ -433,6 +449,7 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
       setOcrLoading(false);
     }
   };
+
 
   if (report) {
     const handleMarkCompleted = async () => {
@@ -546,9 +563,9 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
                   )}
                 </div>
               ))}
-              {/* Symptoms Tag Input */}
+              {/* symptoms Tag Input */}
               <div className="md:col-span-3 mb-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Symptoms</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">symptoms</label>
                 <div className="flex gap-2 mb-2">
                   <input
                     type="text"
@@ -567,7 +584,7 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {analyzeForm.sysmptoms?.map((sym: string) => (
+                  {analyzeForm.symptoms?.map((sym: string) => (
                     <span key={sym} className="flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
                       {sym}
                       <button
@@ -665,41 +682,160 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
             <button onClick={handleFetalRisk} className="px-4 py-2 bg-green-600 text-white rounded">Predict Fetal Risk</button>
           )}
         </div>
-        {/* Results */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Results - Updated Layout with Clinical Summary Priority */}
+        <div className="mt-6">
+          {analyzeError && (
+            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-800 rounded">
+              <strong>Error:</strong> {analyzeError}
+            </div>
+          )}
           {analysis && (
-            <div className="p-4 bg-blue-50 border border-blue-200">
-              <h4 className="font-semibold mb-2">Recommendations</h4>
-              <ul className="list-disc ml-6">
-                {analysis.supplement_recommendations?.map((rec: string, idx: number) => <li key={idx}>{rec}</li>)}
-              </ul>
-              <h4 className="font-semibold mt-4 mb-2">Alerts</h4>
-              <ul className="list-disc ml-6 text-red-600">
-                {analysis.alerts?.map((alert: string, idx: number) => <li key={idx}>{alert}</li>)}
-              </ul>
-              <h4 className="font-semibold mt-4 mb-2">Dietary Recommendations</h4>
-              <ul className="list-disc ml-6">
-                {analysis.dietary_recommendations?.map((diet: string, idx: number) => <li key={idx}>{diet}</li>)}
-              </ul>
-            </div>
+            <>
+              {/* Priority: Clinical Summary at the top */}
+              {analysis.llm_merged_summary && (
+                <div className="mb-6 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 border-l-4 border-indigo-500 rounded-lg">
+                  <h3 className="text-xl font-bold text-indigo-900 mb-3 flex items-center">
+                    <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Clinical Summary & Recommendations
+                  </h3>
+                  <div className="text-gray-800 leading-relaxed whitespace-pre-line">
+                    {analysis.llm_merged_summary}
+                  </div>
+                </div>
+              )}
+              {/* ...existing code for recommendations, alerts, dietary, indicators, llm_response... */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Supplement Recommendations */}
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold mb-3 text-blue-900 flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.415-3.414l5-5A2 2 0 009 9.586V5L8 4z" />
+                    </svg>
+                    Supplement Recommendations
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.supplement_recommendations?.map((rec: string, idx: number) => (
+                      <li key={idx} className="text-sm text-gray-700 flex items-start">
+                        <span className="inline-block w-2 h-2 bg-blue-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {/* Alerts */}
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <h4 className="font-semibold mb-3 text-red-900 flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    Clinical Alerts
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.alerts?.map((alert: string, idx: number) => (
+                      <li key={idx} className="text-sm text-red-700 flex items-start">
+                        <span className="inline-block w-2 h-2 bg-red-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        {alert}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {/* Dietary Recommendations */}
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="font-semibold mb-3 text-green-900 flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    Dietary Recommendations
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.dietary_recommendations?.map((diet: string, idx: number) => (
+                      <li key={idx} className="text-sm text-green-700 flex items-start">
+                        <span className="inline-block w-2 h-2 bg-green-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        {diet}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              {/* Clinical Indicators */}
+              {(analysis.anemia || analysis.gdm || analysis.thyroid) && (
+                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="font-semibold mb-3 text-yellow-900 flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Clinical Indicators Detected
+                  </h4>
+                  <div className="flex flex-wrap gap-3">
+                    {analysis.anemia && (
+                      <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+                        Anemia Detected
+                      </span>
+                    )}
+                    {analysis.gdm && (
+                      <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                        GDM Risk
+                      </span>
+                    )}
+                    {analysis.thyroid && (
+                      <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                        Thyroid Issues
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Detailed LLM Response (Collapsible) */}
+              {analysis.llm_response && (
+                <div className="mt-6">
+                  <details className="bg-gray-50 border border-gray-200 rounded-lg">
+                    <summary className="cursor-pointer p-4 font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
+                      View Detailed Clinical Analysis
+                    </summary>
+                    <div className="p-4 border-t border-gray-200">
+                      <pre className="text-sm bg-white p-3 rounded border whitespace-pre-wrap text-gray-800">
+                        {analysis.llm_response}
+                      </pre>
+                    </div>
+                  </details>
+                </div>
+              )}
+            </>
           )}
+          
+          {/* Pregnancy Risk Results */}
           {pregRisk && (
-            <div className="p-4 bg-orange-50 border border-orange-200">
-              <h4 className="font-semibold mb-2">Pregnancy Risk Prediction</h4>
-              <pre className="text-sm bg-gray-100 p-2 whitespace-pre-wrap">{JSON.stringify(pregRisk, null, 2)}</pre>
+            <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <h4 className="font-semibold mb-3 text-orange-900 flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Pregnancy Risk Prediction
+              </h4>
+              <pre className="text-sm bg-white p-3 rounded border whitespace-pre-wrap">{JSON.stringify(pregRisk, null, 2)}</pre>
             </div>
           )}
+          
+          {/* Fetal Risk Results */}
           {fetalRisk && (
-            <div className="p-4 bg-green-50 border border-green-200">
-              <h4 className="font-semibold mb-2">Fetal Risk Prediction</h4>
-              <pre className="text-sm bg-gray-100 p-2 whitespace-pre-wrap">{JSON.stringify(fetalRisk, null, 2)}</pre>
+            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="font-semibold mb-3 text-green-900 flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                Fetal Risk Prediction
+              </h4>
+              <pre className="text-sm bg-white p-3 rounded border whitespace-pre-wrap">{JSON.stringify(fetalRisk, null, 2)}</pre>
             </div>
           )}
         </div>
+        
         <div className="mt-8 pt-6 border-t border-gray-200">
           <button
             onClick={handleSaveReport}
-            className="w-full px-4 py-3 bg-gray-800 text-white font-semibold hover:bg-gray-900 transition-colors disabled:bg-gray-500"
+            className="w-full px-4 py-3 bg-gray-800 text-white font-semibold hover:bg-gray-900 transition-colors disabled:bg-gray-500 rounded-lg"
             disabled={saving || !analysis}
           >
             {saving ? 'Saving...' : 'Save Final Report'}

@@ -23,7 +23,7 @@ class ReportData(BaseModel):
     bmi: Optional[float] = None
     pre_pregnancy_weight: Optional[float] = None
     current_weight: Optional[float] = None
-    sysmptoms: Optional[List[str]] = None
+    symptoms: Optional[List[str]] = None
     conditions: Optional[List[str]] = None
 
 

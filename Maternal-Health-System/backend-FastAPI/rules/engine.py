@@ -493,7 +493,7 @@ def rule_liver_dysfunction(p: Dict) -> Tuple[List[str], List[str], List[str]]:
 
     if not lft_available:
         # Only apply Step 1 if LFT values are missing
-        symptoms = p.get("symptoms", []) or p.get("sysmptoms", [])
+        symptoms = p.get("symptoms", []) or p.get("symptoms", [])
         conditions = p.get("conditions", [])
 
         if any(

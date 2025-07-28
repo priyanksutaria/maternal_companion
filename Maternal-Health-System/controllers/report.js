@@ -21,23 +21,24 @@ export const createReport = async (req, res) => {
     // 2. Call FastAPI for recommendations
     let recommendations = null;
     let fastApiError = null;
+    let llm_merged_summary = '';
     try {
       const fastApiRes = await axios.post(
-        "http://localhost:8000/analyze", // Change if FastAPI runs elsewhere
+        "https://mrp999-mh-project.hf.space/analyze", // Change if FastAPI runs elsewhere
         { data }
       );
       recommendations = fastApiRes.data;
+      llm_merged_summary = (recommendations && recommendations.llm_merged_summary) ? recommendations.llm_merged_summary : '';
       // Optionally, update the report with recommendations
       await ReportModel.findByIdAndUpdate(report._id, {
         recommendations: recommendations.supplement_recommendations,
         alerts: recommendations.alerts,
         dietary_recommendations: recommendations.dietary_recommendations,
-        anemia: recommendations.anemia,
-        gdm: recommendations.gdm,
-        thyroid: recommendations.thyroid,
+        llm_merged_summary: llm_merged_summary,
       });
     } catch (err) {
       fastApiError = "Could not fetch recommendations from FastAPI.";
+      llm_merged_summary = '';
     }
 
     // 3. Return the report and recommendations
@@ -45,6 +46,7 @@ export const createReport = async (req, res) => {
     res.status(201).json({
       report: finalReport,
       recommendations,
+      summary: llm_merged_summary,
       fastApiError,
     });
   } catch (err) {
@@ -79,7 +81,7 @@ export const getReportById = async (req, res) => {
 // Call FastAPI for pregnancy risk prediction
 export const predictPregnancyRisk = async (req, res) => {
   try {
-    const response = await axios.post("http://localhost:8000/predict_preg", req.body);
+    const response = await axios.post("https://mrp999-mh-project.hf.space/predict_preg", req.body);
     res.json(response.data);
   } catch (err) {
     res.status(500).json({ error: "Failed to get pregnancy risk prediction", details: err.message });
@@ -89,7 +91,7 @@ export const predictPregnancyRisk = async (req, res) => {
 // Call FastAPI for fetal risk prediction
 export const predictFetalRisk = async (req, res) => {
   try {
-    const response = await axios.post("http://localhost:8000/predict_fetal", req.body);
+    const response = await axios.post("https://mrp999-mh-project.hf.space/predict_fetal", req.body);
     res.json(response.data);
   } catch (err) {
     res.status(500).json({ error: "Failed to get fetal risk prediction", details: err.message });
@@ -99,10 +101,21 @@ export const predictFetalRisk = async (req, res) => {
 // Call FastAPI for rules-based recommendations
 export const analyzeReport = async (req, res) => {
   try {
-    const response = await axios.post("http://localhost:8000/analyze", req.body);
+    console.log("Forwarding to FastAPI:", req.body);
+    const response = await axios.post('https://mrp999-mh-project.hf.space/analyze', req.body);
     res.json(response.data);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to get analysis from FastAPI", details: err.message });
+    console.log("FastAPI Response:", response.data);
+  } catch (error) {
+    console.error("FastAPI Error:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    res.status(error.response?.status || 500).json({
+      error: 'FastAPI request failed',
+      details: error.response?.data || error.message
+    });
   }
 };
 
