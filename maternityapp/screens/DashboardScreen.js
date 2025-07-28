@@ -199,7 +199,7 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.overviewCard}>
           <View style={styles.headerRow}>
             <View style={styles.profileSection}>
-              <Image source={require('../assets/logo.png')} style={styles.avatar} />
+              <Image source={require('../assets/Logo.png')} style={styles.avatar} />
               <View style={{ marginLeft: 12 }}>
                 <Text style={styles.greeting}>Good Morning, {name}!</Text>
                 <Text style={styles.weekText}>Week {week} of Pregnancy</Text>

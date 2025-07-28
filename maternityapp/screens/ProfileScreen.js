@@ -162,7 +162,7 @@ export default function ProfileScreen() {
               {/* Header with Avatar */}
               <View style={styles.header}>
                 <View style={styles.avatarContainer}>
-                    <Image source={require('../assets/logo.png')} style={styles.avatarLogo} />
+                    <Image source={require('../assets/Logo.png')} style={styles.avatarLogo} />
                   <View style={styles.pregnancyBadge}>
                     <MaterialCommunityIcons name="baby" size={16} color="#fff" />
                   </View>

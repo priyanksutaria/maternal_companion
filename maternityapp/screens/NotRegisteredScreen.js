@@ -10,7 +10,7 @@ export default function NotRegisteredScreen({ navigation }) {
         <View style={styles.card}>
           <View style={styles.logoCircle}>
             <Image
-              source={require('../assets/logo.png')}
+              source={require('../assets/Logo.png')}
               style={styles.logoLarge}
               resizeMode="contain"
             />

@@ -132,7 +132,7 @@ export default function WelcomeScreen({ navigation }) {
             <View style={styles.headerCard}>
               <View style={styles.logoContainer}>
                 <Image
-                  source={require('../assets/logo.png')}
+                  source={require('../assets/Logo.png')}
                   style={styles.logo}
                   resizeMode="contain"
                 />

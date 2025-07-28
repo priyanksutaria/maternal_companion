@@ -52,7 +52,7 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.headerSection}>
               <View style={styles.logoCircle}>
                 <Image
-                  source={require('../assets/logo.png')}
+                  source={require('../assets/Logo.png')}
                   style={styles.logoLarge}
                   resizeMode="contain"
                 />
