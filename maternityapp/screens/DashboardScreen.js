@@ -18,6 +18,7 @@ export default function DashboardScreen({ navigation }) {
   useEffect(() => {
     const fetchReport = async () => {
       try {
+        console.log('Fetching report for pregnancyId:', pregnancyId); // Debug log
         const response = await fetch(`http://192.168.29.28:3000/report/byPregnancy/${pregnancyId}`);
         if (response.ok) {
           const data = await response.json();

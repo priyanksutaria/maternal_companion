@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Modal, ActivityIndicator, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -30,21 +30,30 @@ export default function ReportsScreen({ route }) {
   useEffect(() => {
     const fetchReports = async () => {
       try {
+        setLoading(true);
         const response = await fetch(`http://192.168.29.28:3000/report/byPregnancy/${pregnancyId}`);
+        console.log('Fetching reports for pregnancyId:', pregnancyId); // Debug log
+        console.log('Response:', response); // Debug log
         if (response.ok) {
           const data = await response.json();
-          setReports(data.reports);
+          console.log('Fetched reports:', data); // Debug log
+          setReports(data.reports || []);
         } else {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
           setError('Failed to fetch reports.');
         }
       } catch (error) {
+        console.error('Fetch error:', error);
         setError('An error occurred while fetching reports.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchReports();
+    if (pregnancyId) {
+      fetchReports();
+    }
   }, [pregnancyId]);
 
   const openReportDetail = (report) => {
@@ -52,122 +61,344 @@ export default function ReportsScreen({ route }) {
     setModalVisible(true);
   };
 
-  const renderReportCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.reportCard}
-      onPress={() => openReportDetail(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardHeader}>
-        <View style={[styles.reportIconWrap, { backgroundColor: typeIcon['Report']?.bg }]}>
-          <MaterialCommunityIcons
-            name={typeIcon['Report']?.icon || 'file-document-outline'}
-            size={28}
-            color={typeIcon['Report']?.color || '#4f8cff'}
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.reportTitle}>Report</Text>
-          <Text style={styles.reportWeek}>{item.data.analyzeForm.gestational_age_weeks} weeks</Text>
-          <Text style={styles.reportMeta}>{new Date(item.createdAt).toLocaleDateString()}</Text>
-        </View>
-        <View style={styles.statusContainer}>
-          <View style={[styles.statusBadge, { backgroundColor: statusColors['completed'] }]}>
-            <Text style={styles.statusText}>Completed</Text>
+  const formatDate = (dateString) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
+
+  const getGestationalAge = (report) => {
+    return report?.data?.analyzeForm?.gestational_age_weeks || 'N/A';
+  };
+
+  const getPatientName = (report) => {
+    return report?.data?.patientDetails?.personal?.name || 'Unknown Patient';
+  };
+
+  const getVisitType = (report) => {
+    return report?.data?.visitDetails?.visitNumber || 'General Report';
+  };
+
+  const getRiskLevel = (report) => {
+    const pregRisk = report?.data?.pregRisk?.EnsemblePrediction;
+    const fetalRisk = report?.data?.fetalRisk?.EnsemblePrediction;
+    
+    if (pregRisk === 2 || fetalRisk === 2) return { level: 'High', color: '#f44336' };
+    if (pregRisk === 1 || fetalRisk === 1) return { level: 'Medium', color: '#ff9800' };
+    return { level: 'Low', color: '#4caf50' };
+  };
+
+  const renderReportCard = ({ item }) => {
+    const gestationalAge = getGestationalAge(item);
+    const visitType = getVisitType(item);
+    const riskLevel = getRiskLevel(item);
+    const alertsCount = item?.data?.analysis?.alerts?.length || 0;
+
+    return (
+      <TouchableOpacity
+        style={styles.reportCard}
+        onPress={() => openReportDetail(item)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.cardHeader}>
+          <View style={[styles.reportIconWrap, { backgroundColor: typeIcon['Report']?.bg }]}>
+            <MaterialCommunityIcons
+              name={typeIcon['Report']?.icon || 'file-document-outline'}
+              size={28}
+              color={typeIcon['Report']?.color || '#4f8cff'}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.reportTitle}>{visitType}</Text>
+            <Text style={styles.reportWeek}>{gestationalAge} weeks</Text>
+            <Text style={styles.reportMeta}>{formatDate(item.createdAt)}</Text>
+          </View>
+          <View style={styles.statusContainer}>
+            <View style={[styles.riskBadge, { backgroundColor: riskLevel.color }]}>
+              <Text style={styles.statusText}>{riskLevel.level} Risk</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.cardContent}>
-        <Text style={styles.summaryText}>
-          {item.data.analysis.alerts.join(', ')}
-        </Text>
-        
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.viewBtn}>
-            <Ionicons name="eye-outline" size={16} color="#4f8cff" />
-            <Text style={styles.viewBtnText}>View Details</Text>
-          </TouchableOpacity>
+        <View style={styles.cardContent}>
+          <Text style={styles.summaryText}>
+            {alertsCount > 0 
+              ? `${alertsCount} alert${alertsCount > 1 ? 's' : ''} detected`
+              : 'No alerts detected'
+            }
+          </Text>
           
-          <TouchableOpacity style={styles.downloadBtn}>
-            <Ionicons name="cloud-download-outline" size={16} color="#fff" />
-            <Text style={styles.downloadText}>Download</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderReportDetail = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{selectedReport?.title}</Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Ionicons name="close-circle" size={28} color="#4f8cff" />
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={styles.viewBtn}>
+              <Ionicons name="eye-outline" size={16} color="#4f8cff" />
+              <Text style={styles.viewBtnText}>View Details</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.downloadBtn}
+              onPress={() => Alert.alert('Download', 'Download functionality coming soon!')}
+            >
+              <Ionicons name="cloud-download-outline" size={16} color="#fff" />
+              <Text style={styles.downloadText}>Download</Text>
             </TouchableOpacity>
           </View>
-          
-          <ScrollView style={styles.modalContent}>
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Date & Week</Text>
-              <Text style={styles.detailValue}>{new Date(selectedReport?.createdAt).toLocaleDateString()} • {selectedReport?.data.analyzeForm.gestational_age_weeks} weeks</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderDetailSection = (title, data, icon, color) => {
+    if (!data || (Array.isArray(data) && data.length === 0)) return null;
+
+    return (
+      <View style={styles.detailSection}>
+        <Text style={styles.detailLabel}>{title}</Text>
+        {Array.isArray(data) ? (
+          data.map((item, index) => (
+            <View key={index} style={styles.recommendationItem}>
+              <Ionicons name={icon} size={16} color={color} />
+              <Text style={styles.recommendationText}>{item}</Text>
             </View>
+          ))
+        ) : (
+          <Text style={styles.detailValue}>{data}</Text>
+        )}
+      </View>
+    );
+  };
 
-            {selectedReport?.data.analysis.alerts && (
-              <View style={styles.detailSection}>
-                <Text style={styles.detailLabel}>Alerts</Text>
-                {selectedReport.data.analysis.alerts.map((alert, index) => (
-                  <View key={index} style={styles.recommendationItem}>
-                    <Ionicons name="alert-circle" size={16} color="#f44336" />
-                    <Text style={styles.recommendationText}>{alert}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
+  const renderVitalSigns = (report) => {
+    const vitals = report?.data?.analyzeForm;
+    if (!vitals) return null;
 
-            {selectedReport?.data.analysis.dietary_recommendations && (
-              <View style={styles.detailSection}>
-                <Text style={styles.detailLabel}>Dietary Recommendations</Text>
-                {selectedReport.data.analysis.dietary_recommendations.map((rec, index) => (
-                  <View key={index} style={styles.recommendationItem}>
-                    <Ionicons name="restaurant-outline" size={16} color="#4caf50" />
-                    <Text style={styles.recommendationText}>{rec}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {selectedReport?.data.analysis.supplement_recommendations && (
-              <View style={styles.detailSection}>
-                <Text style={styles.detailLabel}>Supplement Recommendations</Text>
-                {selectedReport.data.analysis.supplement_recommendations.map((rec, index) => (
-                  <View key={index} style={styles.recommendationItem}>
-                    <Ionicons name="medkit-outline" size={16} color="#2196f3" />
-                    <Text style={styles.recommendationText}>{rec}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </ScrollView>
+    return (
+      <View style={styles.detailSection}>
+        <Text style={styles.detailLabel}>Vital Signs & Lab Results</Text>
+        <View style={styles.vitalsGrid}>
+          {vitals.sbp && vitals.dbp && (
+            <View style={styles.vitalItem}>
+              <Text style={styles.vitalLabel}>Blood Pressure</Text>
+              <Text style={styles.vitalValue}>{vitals.sbp}/{vitals.dbp} mmHg</Text>
+            </View>
+          )}
+          {vitals.bmi && (
+            <View style={styles.vitalItem}>
+              <Text style={styles.vitalLabel}>BMI</Text>
+              <Text style={styles.vitalValue}>{vitals.bmi}</Text>
+            </View>
+          )}
+          {vitals.ferritin && (
+            <View style={styles.vitalItem}>
+              <Text style={styles.vitalLabel}>Ferritin</Text>
+              <Text style={styles.vitalValue}>{vitals.ferritin} µg/L</Text>
+            </View>
+          )}
+          {vitals.ogtt_f && (
+            <View style={styles.vitalItem}>
+              <Text style={styles.vitalLabel}>OGTT (Fasting)</Text>
+              <Text style={styles.vitalValue}>{vitals.ogtt_f} mg/dL</Text>
+            </View>
+          )}
+          {vitals.current_weight && (
+            <View style={styles.vitalItem}>
+              <Text style={styles.vitalLabel}>Current Weight</Text>
+              <Text style={styles.vitalValue}>{vitals.current_weight} kg</Text>
+            </View>
+          )}
         </View>
       </View>
-    </Modal>
-  );
+    );
+  };
+
+  const renderRiskAssessment = (report) => {
+    const pregRisk = report?.data?.pregRisk;
+    const fetalRisk = report?.data?.fetalRisk;
+    
+    if (!pregRisk && !fetalRisk) return null;
+
+    return (
+      <View style={styles.detailSection}>
+        <Text style={styles.detailLabel}>Risk Assessment</Text>
+        {pregRisk && (
+          <View style={styles.riskCard}>
+            <Text style={styles.riskTitle}>Pregnancy Risk</Text>
+            <Text style={styles.riskPrediction}>
+              Level {pregRisk.EnsemblePrediction} 
+              {pregRisk.EnsemblePrediction === 2 ? ' (High)' : 
+               pregRisk.EnsemblePrediction === 1 ? ' (Medium)' : ' (Low)'}
+            </Text>
+            {pregRisk.Probabilities && (
+              <View style={styles.probabilitiesContainer}>
+                <Text style={styles.probabilityText}>
+                  Low: {(pregRisk.Probabilities.Class_0 * 100).toFixed(1)}%
+                </Text>
+                <Text style={styles.probabilityText}>
+                  Medium: {(pregRisk.Probabilities.Class_1 * 100).toFixed(1)}%
+                </Text>
+                <Text style={styles.probabilityText}>
+                  High: {(pregRisk.Probabilities.Class_2 * 100).toFixed(1)}%
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+        {fetalRisk && (
+          <View style={styles.riskCard}>
+            <Text style={styles.riskTitle}>Fetal Risk</Text>
+            <Text style={styles.riskPrediction}>
+              Level {fetalRisk.EnsemblePrediction}
+              {fetalRisk.EnsemblePrediction === 2 ? ' (High)' : 
+               fetalRisk.EnsemblePrediction === 1 ? ' (Medium)' : ' (Low)'}
+            </Text>
+            {fetalRisk.Probabilities && (
+              <View style={styles.probabilitiesContainer}>
+                <Text style={styles.probabilityText}>
+                  Low: {(fetalRisk.Probabilities.Class_0 * 100).toFixed(1)}%
+                </Text>
+                <Text style={styles.probabilityText}>
+                  Medium: {(fetalRisk.Probabilities.Class_1 * 100).toFixed(1)}%
+                </Text>
+                <Text style={styles.probabilityText}>
+                  High: {(fetalRisk.Probabilities.Class_2 * 100).toFixed(1)}%
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderReportDetail = () => {
+    if (!selectedReport) return null;
+
+    const patientName = getPatientName(selectedReport);
+    const gestationalAge = getGestationalAge(selectedReport);
+    const visitType = getVisitType(selectedReport);
+
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>{visitType} Report</Text>
+                <Text style={styles.modalSubtitle}>{patientName}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close-circle" size={28} color="#4f8cff" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalContent}>
+              <View style={styles.detailSection}>
+                <Text style={styles.detailLabel}>Report Information</Text>
+                <Text style={styles.detailValue}>
+                  Date: {formatDate(selectedReport.createdAt)}
+                </Text>
+                <Text style={styles.detailValue}>
+                  Gestational Age: {gestationalAge} weeks
+                </Text>
+                <Text style={styles.detailValue}>
+                  Visit Type: {visitType}
+                </Text>
+              </View>
+
+              {renderVitalSigns(selectedReport)}
+              {renderRiskAssessment(selectedReport)}
+
+              {renderDetailSection(
+                'Critical Alerts', 
+                selectedReport?.data?.analysis?.alerts || selectedReport?.data?.alerts,
+                'alert-circle', 
+                '#f44336'
+              )}
+
+              {renderDetailSection(
+                'Medical Recommendations', 
+                selectedReport?.data?.analysis?.supplement_recommendations || selectedReport?.data?.recommendations,
+                'medkit-outline', 
+                '#2196f3'
+              )}
+
+              {renderDetailSection(
+                'Dietary Recommendations', 
+                selectedReport?.data?.analysis?.dietary_recommendations || selectedReport?.data?.dietary_recommendations,
+                'restaurant-outline', 
+                '#4caf50'
+              )}
+
+              {selectedReport?.data?.analysis?.clinical_summary && (
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailLabel}>Clinical Summary</Text>
+                  <Text style={styles.detailValue}>
+                    {selectedReport.data.analysis.clinical_summary}
+                  </Text>
+                </View>
+              )}
+
+              {selectedReport?.data?.analysis?.llm_merged_summary && (
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailLabel}>AI Generated Summary</Text>
+                  <Text style={styles.detailValue}>
+                    {selectedReport.data.analysis.llm_merged_summary}
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#4f8cff" style={{ flex: 1, justifyContent: 'center' }} />;
+    return (
+      <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.loadingText}>Loading reports...</Text>
+        </View>
+      </LinearGradient>
+    );
   }
 
   if (error) {
-    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text>{error}</Text></View>;
+    return (
+      <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={64} color="#fff" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => {
+              setError(null);
+              setLoading(true);
+              // Trigger useEffect again
+              setReports([]);
+            }}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    );
   }
+
+  const completedReports = reports.length;
+  const activeReports = 0; // You can add logic to count active reports
+  const highRiskReports = reports.filter(report => getRiskLevel(report).level === 'High').length;
 
   return (
     <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
@@ -183,28 +414,35 @@ export default function ReportsScreen({ route }) {
             <Text style={styles.summaryLabel}>Total Reports</Text>
           </View>
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryNumber}>
-              {reports.length}
-            </Text>
+            <Text style={styles.summaryNumber}>{completedReports}</Text>
             <Text style={styles.summaryLabel}>Completed</Text>
           </View>
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryNumber}>
-              0
-            </Text>
-            <Text style={styles.summaryLabel}>Active</Text>
+            <Text style={styles.summaryNumber}>{highRiskReports}</Text>
+            <Text style={styles.summaryLabel}>High Risk</Text>
           </View>
         </View>
 
-        <FlatList
-          data={reports}
-          keyExtractor={item => item._id}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          renderItem={renderReportCard}
-          showsVerticalScrollIndicator={false}
-        />
+        {reports.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="document-outline" size={64} color="rgba(255,255,255,0.5)" />
+            <Text style={styles.emptyStateText}>No reports available</Text>
+            <Text style={styles.emptyStateSubtext}>Your reports will appear here once generated</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={reports}
+            keyExtractor={item => item._id}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            renderItem={renderReportCard}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
         
-        <TouchableOpacity style={styles.fab} onPress={() => {}}>
+        <TouchableOpacity 
+          style={styles.fab} 
+          onPress={() => Alert.alert('Add Report', 'Add new report functionality coming soon!')}
+        >
           <Ionicons name="add" size={28} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -300,7 +538,7 @@ const styles = StyleSheet.create({
   statusContainer: {
     alignItems: 'flex-end',
   },
-  statusBadge: {
+  riskBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -372,6 +610,59 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   
+  // Loading and Error states
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  retryButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#fff',
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+  },
+  emptyStateSubtext: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  
   // Modal styles
   modalOverlay: {
     flex: 1,
@@ -381,7 +672,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '90%',
-    maxHeight: '80%',
+    maxHeight: '85%',
     backgroundColor: '#fff',
     borderRadius: 20,
     overflow: 'hidden',
@@ -400,6 +691,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2d3a4b',
   },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
   modalContent: {
     padding: 20,
   },
@@ -416,47 +712,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2d3a4b',
     lineHeight: 22,
-  },
-  resultRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  resultKey: {
-    fontSize: 14,
-    color: '#666',
-  },
-  resultValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2d3a4b',
-  },
-  medicineCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-  },
-  medicineName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2d3a4b',
     marginBottom: 4,
-  },
-  medicineDosage: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 2,
-  },
-  medicineDuration: {
-    fontSize: 12,
-    color: '#4f8cff',
   },
   recommendationItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
   recommendationText: {
@@ -464,19 +724,54 @@ const styles = StyleSheet.create({
     color: '#2d3a4b',
     marginLeft: 8,
     flex: 1,
+    lineHeight: 20,
   },
-  nextVisitCard: {
+  vitalsGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#e3f0ff',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 10,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
-  nextVisitText: {
+  vitalItem: {
+    width: '48%',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+  },
+  vitalLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  vitalValue: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#2d3a4b',
+  },
+  riskCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  riskTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2d3a4b',
+    marginBottom: 4,
+  },
+  riskPrediction: {
+    fontSize: 14,
+    fontWeight: '500',
     color: '#4f8cff',
-    marginLeft: 8,
+    marginBottom: 8,
+  },
+  probabilitiesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  probabilityText: {
+    fontSize: 12,
+    color: '#666',
   },
 });
