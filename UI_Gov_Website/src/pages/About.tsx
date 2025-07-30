@@ -154,17 +154,17 @@ export default function About() {
                   <span className="font-medium text-green-900 text-lg">{t('about.phase1')}</span>
                   <span className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 text-sm font-medium rounded-full shadow-lg">{t('about.completed')}</span>
                 </div>
-                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl">
-                  <span className="font-medium text-yellow-900 text-lg">{t('about.phase2')}</span>
-                  <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 text-sm font-medium rounded-full shadow-lg">{t('about.inProgress')}</span>
+                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl">
+                  <span className="font-medium text-green-900 text-lg">{t('about.phase2')}</span>
+                  <span className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 text-sm font-medium rounded-full shadow-lg">{t('about.completed')}</span>
                 </div>
-                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl">
-                  <span className="font-medium text-gray-700 text-lg">{t('about.phase3')}</span>
-                  <span className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-4 py-2 text-sm font-medium rounded-full shadow-lg">{t('about.planned')}</span>
+                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl">
+                  <span className="font-medium text-green-900 text-lg">{t('about.phase3')}</span>
+                  <span className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 text-sm font-medium rounded-full shadow-lg">{t('about.completed')}</span>
                 </div>
-                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl">
-                  <span className="font-medium text-gray-700 text-lg">{t('about.phase4')}</span>
-                  <span className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-4 py-2 text-sm font-medium rounded-full shadow-lg">{t('about.planned')}</span>
+                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl">
+                  <span className="font-medium text-green-900 text-lg">{t('about.phase4')}</span>
+                  <span className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 text-sm font-medium rounded-full shadow-lg">{t('about.completed')}</span>
                 </div>
               </div>
             </div>
