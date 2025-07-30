@@ -98,6 +98,11 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
   const [ocrText, setOcrText] = useState<string | null>(null);
   const [symptomInput, setSymptomInput] = useState('');
   const [conditionInput, setConditionInput] = useState('');
+  
+  // Loading states for the three sections
+  const [analyzeLoading, setAnalyzeLoading] = useState(false);
+  const [pregRiskLoading, setPregRiskLoading] = useState(false);
+  const [fetalRiskLoading, setFetalRiskLoading] = useState(false);
 
   const visits = patient && patient.visits ? patient.visits : [];
 
@@ -200,11 +205,21 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
 
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const handleAnalyze = async () => {
-    const res = await analyzeReport({ data: analyzeForm });
-    setAnalysis(res);
+    setAnalyzeLoading(true);
+    setAnalyzeError(null);
+    try {
+      const res = await analyzeReport({ data: analyzeForm });
+      setAnalysis(res);
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setAnalyzeError('Failed to analyze data. Please try again.');
+    } finally {
+      setAnalyzeLoading(false);
+    }
   };
 
   const handlePregRisk = async () => {
+    setPregRiskLoading(true);
     try {
       // Convert string values to numbers
       const convertedData = convertFormDataToNumbers(pregForm, pregFields);
@@ -215,10 +230,13 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
     } catch (error) {
       console.error('Pregnancy risk prediction error:', error);
       alert('Failed to predict pregnancy risk. Please check your input values.');
+    } finally {
+      setPregRiskLoading(false);
     }
   };
 
   const handleFetalRisk = async () => {
+    setFetalRiskLoading(true);
     try {
       // Convert string values to numbers
       const convertedData = convertFormDataToNumbers(fetalForm, fetalFields);
@@ -229,6 +247,8 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
     } catch (error) {
       console.error('Fetal risk prediction error:', error);
       alert('Failed to predict fetal risk. Please check your input values.');
+    } finally {
+      setFetalRiskLoading(false);
     }
   };
 
@@ -673,13 +693,64 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
         {/* Action Buttons for Each Tab */}
         <div className="flex space-x-4 mt-2 mb-6">
           {activeTab === 'analyze' && (
-            <button onClick={handleAnalyze} className="px-4 py-2 bg-blue-600 text-white rounded">Analyze (Rules)</button>
+            <button 
+              onClick={handleAnalyze} 
+              disabled={analyzeLoading}
+              className={`px-4 py-2 text-white rounded flex items-center space-x-2 ${
+                analyzeLoading 
+                  ? 'bg-blue-400 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              {analyzeLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Analyzing...</span>
+                </>
+              ) : (
+                <span>Analyze (Rules)</span>
+              )}
+            </button>
           )}
           {activeTab === 'preg' && (
-            <button onClick={handlePregRisk} className="px-4 py-2 bg-orange-600 text-white rounded">Predict Pregnancy Risk</button>
+            <button 
+              onClick={handlePregRisk} 
+              disabled={pregRiskLoading}
+              className={`px-4 py-2 text-white rounded flex items-center space-x-2 ${
+                pregRiskLoading 
+                  ? 'bg-orange-400 cursor-not-allowed' 
+                  : 'bg-orange-600 hover:bg-orange-700'
+              }`}
+            >
+              {pregRiskLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Predicting Pregnancy Risk...</span>
+                </>
+              ) : (
+                <span>Predict Pregnancy Risk</span>
+              )}
+            </button>
           )}
           {activeTab === 'fetal' && (
-            <button onClick={handleFetalRisk} className="px-4 py-2 bg-green-600 text-white rounded">Predict Fetal Risk</button>
+            <button 
+              onClick={handleFetalRisk} 
+              disabled={fetalRiskLoading}
+              className={`px-4 py-2 text-white rounded flex items-center space-x-2 ${
+                fetalRiskLoading 
+                  ? 'bg-green-400 cursor-not-allowed' 
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
+            >
+              {fetalRiskLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Predicting Fetal Risk...</span>
+                </>
+              ) : (
+                <span>Predict Fetal Risk</span>
+              )}
+            </button>
           )}
         </div>
         {/* Results - Updated Layout with Clinical Summary Priority */}
@@ -689,6 +760,18 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
               <strong>Error:</strong> {analyzeError}
             </div>
           )}
+          
+          {/* Analyze Loading State */}
+          {analyzeLoading && (
+            <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-center space-x-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="text-blue-800 font-semibold">Analyzing data and generating recommendations...</div>
+              </div>
+              <div className="mt-3 text-center text-blue-600 text-sm">Please wait while we process your information</div>
+            </div>
+          )}
+          
           {analysis && (
             <>
               {/* Priority: Clinical Summary at the top */}
@@ -805,8 +888,19 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
             </>
           )}
           
+          {/* Pregnancy Risk Loading State */}
+          {pregRiskLoading && (
+            <div className="mt-6 p-6 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="flex items-center justify-center space-x-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                <div className="text-orange-800 font-semibold">Analyzing pregnancy risk factors...</div>
+              </div>
+              <div className="mt-3 text-center text-orange-600 text-sm">Please wait while we predict pregnancy risk</div>
+            </div>
+          )}
+          
           {/* Pregnancy Risk Results */}
-          {pregRisk && (
+          {pregRisk && !pregRiskLoading && (
             <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
               <h4 className="font-semibold mb-3 text-orange-900 flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -818,8 +912,19 @@ export default function VisitReportForm({ visit, patient, onBack }: VisitReportF
             </div>
           )}
           
+          {/* Fetal Risk Loading State */}
+          {fetalRiskLoading && (
+            <div className="mt-6 p-6 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-center space-x-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <div className="text-green-800 font-semibold">Analyzing fetal health parameters...</div>
+              </div>
+              <div className="mt-3 text-center text-green-600 text-sm">Please wait while we predict fetal risk</div>
+            </div>
+          )}
+          
           {/* Fetal Risk Results */}
-          {fetalRisk && (
+          {fetalRisk && !fetalRiskLoading && (
             <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
               <h4 className="font-semibold mb-3 text-green-900 flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

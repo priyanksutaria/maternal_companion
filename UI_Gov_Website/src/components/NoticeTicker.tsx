@@ -14,7 +14,7 @@ export default function NoticeTicker() {
   ];
 
   return (
-    <div className="bg-blue-700 text-white py-2 border-b border-blue-800 overflow-hidden m-0 px-4">
+    <div className="bg-green-600 text-white py-2 border-b-2 border-green-800 shadow-sm overflow-hidden m-0 px-4">
       <style>{`
         .animate-scroll-slow {
           animation: scroll 60s linear infinite;
@@ -25,7 +25,7 @@ export default function NoticeTicker() {
         }
       `}</style>
       <div className="w-full flex items-center relative m-0 px-4">
-        <span className="bg-blue-800 px-3 py-1 text-xs font-bold flex-shrink-0 uppercase tracking-wider z-10" style={{ minWidth: 140 }}>
+        <span className="bg-green-800 px-3 py-1 text-xs font-bold flex-shrink-0 uppercase tracking-wider z-10 shadow-sm text-green-50" style={{ minWidth: 140 }}>
           {t('noticeTicker.label')}
         </span>
         <div className="relative flex-1 overflow-hidden h-6 m-0">
@@ -50,7 +50,7 @@ export default function NoticeTicker() {
         <button
           aria-label={playing ? t('noticeTicker.pause') : t('noticeTicker.play')}
           onClick={() => setPlaying((p) => !p)}
-          className="ml-4 bg-blue-800 text-white rounded-full w-9 h-9 flex items-center justify-center shadow border-2 border-white hover:bg-blue-900 transition-colors absolute right-2 top-1/2 -translate-y-1/2 z-10"
+          className="ml-4 bg-green-800 text-green-50 rounded-full w-9 h-9 flex items-center justify-center shadow border-2 border-white hover:bg-green-900 transition-colors absolute right-2 top-1/2 -translate-y-1/2 z-10"
         >
           {playing ? <Pause size={20} /> : <Play size={20} />}
         </button>

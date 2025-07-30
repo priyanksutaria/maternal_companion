@@ -195,6 +195,91 @@ export default function Register() {
     );
   };
 
+  // Validation for Obstetric History
+  const isObstetricHistoryValid = () => {
+    const { gravida, para, liveChildren } = form.obstetricHistory;
+    return gravida.trim() && para.trim() && liveChildren.trim();
+  };
+
+  // Validation for Menstrual History
+  const isMenstrualHistoryValid = () => {
+    const { lmp, edd } = form.menstrualHistory;
+    return lmp.trim() && edd.trim();
+  };
+
+  // Validation for Medical History (at least one field should be filled)
+  const isMedicalHistoryValid = () => {
+    const { hypertension, diabetes, asthma, epilepsy, thyroid, tuberculosis, heartDisease, hiv, hepatitis, anemia } = form.medicalHistory;
+    return hypertension || diabetes || asthma || epilepsy || thyroid || tuberculosis || heartDisease || hiv || hepatitis || anemia;
+  };
+
+  // Validation for Family History (at least one field should be filled)
+  const isFamilyHistoryValid = () => {
+    const { geneticDisorders, twinPregnancies, familyDiabetes, familyHypertension, familyCardiacDisease, familyMentalIllness, consanguineousMarriage, repeatedMiscarriages } = form.familyHistory;
+    return geneticDisorders.trim() || twinPregnancies || familyDiabetes || familyHypertension || familyCardiacDisease || familyMentalIllness || consanguineousMarriage || repeatedMiscarriages;
+  };
+
+  // Validation for Obstetric Risk Factors (at least one field should be filled)
+  const isObstetricRiskFactorsValid = () => {
+    const { pretermLabor, iugr, eclampsia, hemorrhage, prolongedLabor, lowBirthWeight, neonatalDeath, congenitalAnomalies, rhIncompatibility } = form.obstetricRiskFactors;
+    return pretermLabor || iugr || eclampsia || hemorrhage || prolongedLabor || lowBirthWeight || neonatalDeath || congenitalAnomalies || rhIncompatibility;
+  };
+
+  // Validation for Immunization History
+  const isImmunizationHistoryValid = () => {
+    const { ttStatus, ifaIntake, deworming, covidVaccine } = form.immunizationHistory;
+    return ttStatus.trim() || ifaIntake || deworming || covidVaccine;
+  };
+
+  // Validation for Diet and Nutrition
+  const isDietAndNutritionValid = () => {
+    const { vegetarian, mealsPerDay, fruitsAndVegetables, ironCalciumFoods, teaCoffee, tobaccoAlcohol, preconceptionFolicAcid, awarenessOfTeratogens } = form.dietAndNutrition;
+    return mealsPerDay.trim() || vegetarian || fruitsAndVegetables || ironCalciumFoods || teaCoffee || tobaccoAlcohol || preconceptionFolicAcid || awarenessOfTeratogens;
+  };
+
+  // Validation for Lifestyle
+  const isLifestyleValid = () => {
+    const { tobaccoUse, alcoholUse, narcotics, physicalActivity, domesticViolence, occupationalExposure } = form.lifestyle;
+    return physicalActivity.trim() || occupationalExposure.trim() || tobaccoUse || alcoholUse || narcotics || domesticViolence;
+  };
+
+  // Validation for Environment
+  const isEnvironmentValid = () => {
+    const { housingType, toiletFacility, drinkingWaterSource, cookingFuel } = form.environment;
+    return housingType.trim() || toiletFacility.trim() || drinkingWaterSource.trim() || cookingFuel.trim();
+  };
+
+  // Validation for Contraceptive History
+  const isContraceptiveHistoryValid = () => {
+    const { previousUse, failureOrComplications, intentionToUsePostDelivery, emergencyContraception } = form.contraceptiveHistory;
+    return failureOrComplications.trim() || previousUse || intentionToUsePostDelivery || emergencyContraception;
+  };
+
+  // Validation for Other
+  const isOtherValid = () => {
+    const { bloodGroup, rhType, drugOrFoodAllergies, maritalAge, institutionalDeliveryIntent, awarenessOfSchemes } = form.other;
+    return bloodGroup.trim() || rhType.trim() || drugOrFoodAllergies.trim() || maritalAge.trim() || institutionalDeliveryIntent || awarenessOfSchemes;
+  };
+
+  // Get validation function for a specific tab
+  const getTabValidation = (tabId: number) => {
+    switch (tabId) {
+      case 0: return isPersonalDetailsValid;
+      case 1: return isObstetricHistoryValid;
+      case 2: return isMenstrualHistoryValid;
+      case 3: return isMedicalHistoryValid;
+      case 4: return isFamilyHistoryValid;
+      case 5: return isObstetricRiskFactorsValid;
+      case 6: return isImmunizationHistoryValid;
+      case 7: return isDietAndNutritionValid;
+      case 8: return isLifestyleValid;
+      case 9: return isEnvironmentValid;
+      case 10: return isContraceptiveHistoryValid;
+      case 11: return isOtherValid;
+      default: return () => false;
+    }
+  };
+
   // Handle navigation and completion
   const handleTabClick = (tabId: number) => {
     if (tabId === 0 || completedTabs.includes(tabId) || completedTabs.includes(tabId - 1)) {
@@ -202,12 +287,22 @@ export default function Register() {
     }
   };
 
-  // When personal details are filled, unlock the next tab
+  // Check and update completed tabs based on form data
   React.useEffect(() => {
-    if (isPersonalDetailsValid() && !completedTabs.includes(1)) {
-      setCompletedTabs((prev) => [...prev, 1]);
+    const newCompletedTabs = [0]; // Personal Details is always accessible
+    
+    // Check each tab for completion
+    for (let i = 1; i < tabs.length; i++) {
+      const isValid = getTabValidation(i)();
+      if (isValid) {
+        newCompletedTabs.push(i);
+      }
     }
-  }, [form.personal]);
+    
+    setCompletedTabs(newCompletedTabs);
+  }, [form]); // This will run whenever any form data changes
+
+
 
   // Example: Gather all tab data here (for demo, only personalDetails is used)
   const handleSubmit = async () => {
@@ -282,15 +377,18 @@ export default function Register() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-              <input type="text" value={form.personal.name} onChange={e => setForm(f => ({ ...f, personal: { ...f.personal, name: e.target.value } }))} className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              <input type="text" value={form.personal.name} onChange={e => setForm(f => ({ ...f, personal: { ...f.personal, name: e.target.value } }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Age *</label>
-              <input type="number" value={form.personal.age} onChange={e => setForm(f => ({ ...f, personal: { ...f.personal, age: e.target.value } }))} className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              <input type="number" value={form.personal.age} onChange={e => setForm(f => ({ ...f, personal: { ...f.personal, age: e.target.value } }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Husband's Name</label>
-              <input type="text" value={form.personal.husbandName} onChange={e => setForm(f => ({ ...f, personal: { ...f.personal, husbandName: e.target.value } }))} className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              <label className="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                Husband's Name
+              </label>
+              <input type="text" value={form.personal.husbandName} onChange={e => setForm(f => ({ ...f, personal: { ...f.personal, husbandName: e.target.value } }))} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Religion</label>
@@ -973,36 +1071,54 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-2 py-2">
-        <div className="bg-white border border-gray-200 mb-8">
-          <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">{t('register.maternalHealthMonitoringRegistration')}</h1>
-            <p className="text-gray-600 mt-2">{t('register.completeRegistrationFormForComprehensiveMaternalHealthMonitoring')}</p>
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-green-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="bg-white/90 backdrop-blur-sm border border-yellow-200/50 rounded-2xl shadow-lg mb-8 overflow-hidden">
+          <div className="p-8 border-b border-yellow-200/50 bg-gradient-to-r from-yellow-600 to-green-600 text-white">
+            <h1 className="text-3xl font-bold mb-2">{t('register.maternalHealthMonitoringRegistration')}</h1>
+            <p className="text-yellow-100 text-lg">{t('register.completeRegistrationFormForComprehensiveMaternalHealthMonitoring')}</p>
           </div>
 
           {/* Tab Navigation */}
-          <div className="border-b border-gray-200">
-            <div className="flex flex-wrap">
+          <div className="border-b border-gray-200/50 bg-gray-50/50">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-1 p-4">
               {tabs.map((tab, idx) => {
-                const isLocked = idx > 0 && !completedTabs.includes(idx);
-                const isClickable = !isLocked || completedTabs.includes(idx - 1);
+                const isCompleted = completedTabs.includes(idx);
+                const isLocked = idx > 0 && !isCompleted;
+                const canAccess = idx === 0 || isCompleted || completedTabs.includes(idx - 1);
                 return (
                 <button
                   key={tab.id}
                     onClick={() => handleTabClick(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  className={`flex flex-col items-center space-y-2 px-3 py-3 text-xs font-medium border-b-2 transition-all duration-300 rounded-lg ${
                     activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600 bg-blue-50'
+                      ? 'border-yellow-600 text-yellow-600 bg-white shadow-lg'
+                        : isCompleted
+                        ? 'border-green-500 text-green-600 hover:text-green-700 hover:border-green-400 bg-green-50'
                         : isLocked
-                        ? 'border-transparent text-gray-400 cursor-not-allowed'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-transparent text-gray-400 cursor-not-allowed bg-gray-100'
+                      : 'border-transparent text-gray-600 hover:text-yellow-600 hover:border-yellow-300 hover:bg-white/80'
                   }`}
-                    disabled={isLocked && !completedTabs.includes(idx - 1)}
+                    disabled={!canAccess}
                 >
-                  {tab.icon}
-                  <span className="hidden sm:inline">{tab.name}</span>
-                    {isLocked && <Lock size={14} className="ml-1" />}
+                  <div className={`p-2 rounded-lg ${
+                    activeTab === tab.id 
+                      ? 'bg-yellow-100' 
+                      : isCompleted 
+                        ? 'bg-green-100' 
+                        : 'bg-gray-100'
+                  }`}>
+                    {tab.icon}
+                  </div>
+                  <span className="text-center font-semibold leading-tight">{tab.name}</span>
+                  {isCompleted && (
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center mt-1">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  {isLocked && <Lock size={12} className="mt-1" />}
                 </button>
                 );
               })}
@@ -1010,33 +1126,40 @@ export default function Register() {
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">{tabs[activeTab].name}</h2>
-              <div className="w-full bg-gray-200 h-2">
+          <div className="p-8">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-3 rounded-xl mr-4">
+                  {tabs[activeTab].icon}
+                </div>
+                {tabs[activeTab].name}
+              </h2>
+              <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
                 <div 
-                  className="bg-blue-600 h-2 transition-all duration-300" 
+                  className="bg-gradient-to-r from-yellow-500 to-green-600 h-3 rounded-full transition-all duration-500" 
                   style={{ width: `${((activeTab + 1) / tabs.length) * 100}%` }}
                 ></div>
               </div>
-              <p className="text-sm text-gray-500 mt-2">{t('register.step', { step: activeTab + 1, total: tabs.length })}</p>
+              <p className="text-sm text-gray-600 mt-3 font-medium">{t('register.step', { step: activeTab + 1, total: tabs.length })}</p>
             </div>
 
-            {renderTabContent()}
+            <div className="bg-gray-50/50 p-6 rounded-xl border border-gray-200/50">
+              {renderTabContent()}
+            </div>
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+            <div className="flex justify-between mt-8 pt-6 border-t border-gray-200/50">
               <button
                 onClick={() => setActiveTab(Math.max(0, activeTab - 1))}
                 disabled={activeTab === 0}
-                className="px-6 py-2 bg-gray-300 text-gray-700 hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-8 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl hover:from-gray-500 hover:to-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 {t('register.previous')}
               </button>
               
               {activeTab === tabs.length - 1 ? (
                 <button
-                  className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-green-600 text-white rounded-xl hover:from-yellow-700 hover:to-green-700 transition-all duration-300 disabled:opacity-50 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                   onClick={handleSubmit}
                   disabled={loading}
                 >
@@ -1045,14 +1168,32 @@ export default function Register() {
               ) : (
                 <button
                   onClick={() => setActiveTab(Math.min(tabs.length - 1, activeTab + 1))}
-                  className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-green-600 text-white rounded-xl hover:from-yellow-700 hover:to-green-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   {t('register.next')}
                 </button>
               )}
             </div>
-            {success && <div className="mt-4 text-green-700 font-semibold">{success}</div>}
-            {error && <div className="mt-4 text-red-700 font-semibold">{error}</div>}
+            {success && (
+              <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl text-green-800 font-semibold flex items-center">
+                <div className="w-6 h-6 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                {success}
+              </div>
+            )}
+            {error && (
+              <div className="mt-6 p-4 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl text-red-800 font-semibold flex items-center">
+                <div className="w-6 h-6 bg-red-500 rounded-full mr-3 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                {error}
+              </div>
+            )}
           </div>
         </div>
       </div>

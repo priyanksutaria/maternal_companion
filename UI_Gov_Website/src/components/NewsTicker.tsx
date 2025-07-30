@@ -15,7 +15,7 @@ export default function NewsTicker() {
   ];
 
   return (
-    <div className="bg-orange-600 text-white py-2 border-b border-orange-700 overflow-hidden sticky top-14 z-40 m-0 px-4">
+    <div className="bg-yellow-500 text-white py-2 border-b-2 border-yellow-700 shadow-sm overflow-hidden sticky top-14 z-40 m-0 px-4">
       <style>{`
         .animate-scroll-slow {
           animation: scroll 60s linear infinite;
@@ -26,7 +26,7 @@ export default function NewsTicker() {
         }
       `}</style>
       <div className="w-full flex items-center relative m-0 px-4">
-        <span className="bg-orange-700 px-3 py-1 text-xs font-bold flex-shrink-0 uppercase tracking-wider z-10" style={{ minWidth: 140 }}>
+        <span className="bg-yellow-700 px-3 py-1 text-xs font-bold flex-shrink-0 uppercase tracking-wider z-10 shadow-sm text-yellow-50" style={{ minWidth: 140 }}>
           {t('newsTicker.label')}
         </span>
         <div className="relative flex-1 overflow-hidden h-6 m-0">
@@ -51,7 +51,7 @@ export default function NewsTicker() {
         <button
           aria-label={playing ? t('newsTicker.pause') : t('newsTicker.play')}
           onClick={() => setPlaying((p) => !p)}
-          className="ml-4 bg-orange-700 text-white rounded-full w-9 h-9 flex items-center justify-center shadow border-2 border-white hover:bg-orange-800 transition-colors absolute right-2 top-1/2 -translate-y-1/2 z-10"
+          className="ml-4 bg-yellow-700 text-yellow-50 rounded-full w-9 h-9 flex items-center justify-center shadow border-2 border-white hover:bg-yellow-800 transition-colors absolute right-2 top-1/2 -translate-y-1/2 z-10"
         >
           {playing ? <Pause size={20} /> : <Play size={20} />}
         </button>

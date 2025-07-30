@@ -16,7 +16,7 @@ export default function Carousel() {
   const nextSlide = () => setCurrentSlide((prev) => (prev === slideImages.length - 1 ? 0 : prev + 1));
 
   return (
-    <div className="w-full flex bg-gradient-to-r from-blue-100 to-blue-300" style={{height: '520px'}}>
+    <div className="w-full flex bg-gradient-to-r from-yellow-50 via-white to-green-50" style={{height: '520px'}}>
       {/* Left 3/5th: Carousel */}
       <div className="relative mx-4" style={{width: '75%', height: '100%'}}>
         <img
@@ -52,12 +52,12 @@ export default function Carousel() {
         </div>
       </div>
       {/* Right 2/5th: Maternal Health Quote */}
-      <div style={{width: '40%', height: '100%'}} className="flex items-center justify-center">
-        <div className="text-center px-6">
-          <span className="block text-2xl md:text-3xl font-semibold italic text-blue-900 leading-snug drop-shadow-lg">
+      <div style={{width: '40%', height: '100%', marginRight: '2rem'}} className="flex items-center justify-center">
+        <div className="text-center px-6 py-10 bg-white/90 rounded-3xl shadow-lg border border-green-100">
+          <span className="block text-2xl md:text-3xl font-semibold italic text-green-900 leading-snug drop-shadow-lg">
             {t('carousel.quote')}
           </span>
-          <span className="block mt-4 text-lg text-blue-700 font-light">{t('carousel.quoteSource')}</span>
+          <span className="block mt-4 text-lg text-yellow-700 font-light">{t('carousel.quoteSource')}</span>
         </div>
       </div>
     </div>
