@@ -5,7 +5,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { PregnancyProvider, usePregnancy } from '../context/PregnancyContext';
 
 // Set your backend IP here for device testing. Use 'localhost' for web/emulator, or your PC's IP for physical device.
-const API_BASE_URL = 'http://192.168.29.28:3000'; // <-- CHANGE THIS to your PC's IP address
+const API_BASE_URL = 'https://maternity-backend-1.onrender.com'; // <-- CHANGE THIS to your PC's IP address
 
 export default function LoginScreen({ navigation }) {
   const { pregnancyId, setPregnancyId } = usePregnancy();
@@ -41,7 +41,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
+    <LinearGradient colors={['#fff8b0', '#e6f781', '#d0f0c0']} style={styles.gradient}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -68,7 +68,7 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <View style={styles.iconCircle}>
-                  <Ionicons name="lock-closed" size={22} color="#4f8cff" />
+                  <Ionicons name="lock-closed" size={22} color="#4caf50" />
                 </View>
                 <Text style={styles.cardTitle}>Secure Login</Text>
               </View>
@@ -81,7 +81,7 @@ export default function LoginScreen({ navigation }) {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Pregnancy UID</Text>
                 <View style={styles.inputRow}>
-                  <Ionicons name="key-outline" size={20} color="#4f8cff" style={styles.icon} />
+                  <Ionicons name="key-outline" size={20} color="#4caf50" style={styles.icon} />
               <TextInput
                 style={styles.input}
                 placeholder="Enter your Pregnancy ID"
@@ -135,7 +135,7 @@ export default function LoginScreen({ navigation }) {
                 style={styles.registerButton}
                 onPress={() => navigation.navigate('NotRegistered')}
               >
-                <Ionicons name="person-add-outline" size={20} color="#4f8cff" style={{ marginRight: 8 }} />
+                <Ionicons name="person-add-outline" size={20} color="#4caf50" style={{ marginRight: 8 }} />
                 <Text style={styles.registerButtonText}>Register at Nearest Center</Text>
               </TouchableOpacity>
 
@@ -144,11 +144,11 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.supportTitle}>Need Help?</Text>
                 <View style={styles.supportOptions}>
                   <TouchableOpacity style={styles.supportButton}>
-                    <Ionicons name="call" size={18} color="#4f8cff" />
+                    <Ionicons name="call" size={18} color="#4caf50" />
                     <Text style={styles.supportButtonText}>Call Support</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.supportButton}>
-                    <Ionicons name="chatbubble" size={18} color="#4f8cff" />
+                    <Ionicons name="chatbubble" size={18} color="#4caf50" />
                     <Text style={styles.supportButtonText}>Live Chat</Text>
                   </TouchableOpacity>
                 </View>
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginTop: 40,
     alignSelf: 'center',
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -211,13 +211,13 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#4f8cff',
+    color: '#4caf50',
     marginBottom: 8,
     fontFamily: Platform.OS === 'ios' ? 'AvenirNext-Bold' : 'sans-serif-medium',
   },
   quote: {
     fontSize: 17,
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 18,
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: '#4f8cff',
+    color: '#4caf50',
     textAlign: 'center',
     opacity: 0.8,
     lineHeight: 22,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 32,
     alignItems: 'center',
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.16,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 10 },
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#4f8cff',
+    color: '#4caf50',
     marginLeft: 12,
     fontFamily: Platform.OS === 'ios' ? 'AvenirNext-Bold' : 'sans-serif-medium',
   },
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#4f8cff',
+    color: '#4caf50',
     marginBottom: 8,
     marginLeft: 4,
   },
@@ -346,13 +346,13 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
     paddingHorizontal: 38,
     paddingVertical: 16,
     borderRadius: 24,
     marginTop: 10,
     marginBottom: 16,
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.18,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   forgotText: {
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '500',
     fontSize: 14,
     textDecorationLine: 'underline',
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(79,140,255,0.3)',
   },
   registerButtonText: {
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '600',
     fontSize: 16,
   },
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(79,140,255,0.2)',
   },
   supportButtonText: {
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '500',
     fontSize: 14,
     marginLeft: 6,
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.08,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },

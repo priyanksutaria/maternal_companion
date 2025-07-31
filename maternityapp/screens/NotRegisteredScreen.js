@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function NotRegisteredScreen({ navigation }) {
   return (
-    <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
+    <LinearGradient colors={['#fff8b0', '#e6f781', '#d0f0c0']} style={styles.gradient}>
       <View style={styles.container}>
         <View style={styles.card}>
           <View style={styles.logoCircle}>
@@ -21,7 +21,7 @@ export default function NotRegisteredScreen({ navigation }) {
           </Text>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => Linking.openURL('https://maternal-health.netlify.app/')}
+            onPress={() => Linking.openURL('https://djcompsrps25prototype.vercel.app/')}
           >
             <Ionicons name="globe-outline" size={22} color="#fff" style={{ marginRight: 8 }} />
             <Text style={styles.buttonText}>Go to Website</Text>
@@ -30,8 +30,8 @@ export default function NotRegisteredScreen({ navigation }) {
             style={[styles.button, styles.buttonOutline]}
             onPress={() => navigation.navigate('Welcome')}
           >
-            <Ionicons name="arrow-back-outline" size={22} color="#4f8cff" style={{ marginRight: 8 }} />
-            <Text style={[styles.buttonText, { color: '#4f8cff' }]}>Back to Welcome</Text>
+            <Ionicons name="arrow-back-outline" size={22} color="#4caf50" style={{ marginRight: 8 }} />
+            <Text style={[styles.buttonText, { color: '#4caf50' }]}>Back to Welcome</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 32,
     alignItems: 'center',
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.13,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 8 },
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     marginTop: 10,
     alignSelf: 'center',
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#4f8cff',
+    color: '#4caf50',
     marginBottom: 8,
     letterSpacing: 0.5,
   },
@@ -104,13 +104,13 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 24,
     marginBottom: 14,
     marginTop: 2,
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.2,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   buttonOutline: {
     backgroundColor: '#fff',
     borderWidth: 2,
-    borderColor: '#4f8cff',
+    borderColor: '#4caf50',
   },
   buttonText: {
     color: '#fff',

@@ -33,10 +33,10 @@ export default function AIHealthBotScreen() {
 
   // Mock patient data - in real app, this would come from context/props
   const patientData = {
-    name: "Priya",
+    name: "Anita",
     age: 28,
-    pregnancyWeek: 18,
-    dueDate: "March 15, 2025",
+    pregnancyWeek: 4,
+    dueDate: "7 Apr, 2026",
     lastANCVisit: "Jan 10, 2025",
     supplements: ["Iron", "Folic Acid", "Calcium"],
     riskFactors: ["First pregnancy", "Slightly low hemoglobin"]
@@ -160,7 +160,7 @@ export default function AIHealthBotScreen() {
       case 'development': return '#ff8cc8';
       case 'exercise': return '#ffd43b';
       case 'anc': return '#9775fa';
-      default: return '#4f8cff';
+      default: return '#4caf50';
     }
   }
 
@@ -188,7 +188,7 @@ export default function AIHealthBotScreen() {
   }
 
   return (
-    <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
+    <LinearGradient colors={['#fff8b0', '#e6f781', '#d0f0c0']} style={styles.gradient}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -196,14 +196,14 @@ export default function AIHealthBotScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Ionicons name="chatbubbles" size={28} color="#fff" />
+            <Ionicons name="chatbubbles" size={28} color="#4caf50" />
             <View style={styles.headerText}>
               <Text style={styles.headerTitle}>AI Health Companion</Text>
               <Text style={styles.headerSubtitle}>Your pregnancy support assistant</Text>
             </View>
           </View>
           <TouchableOpacity onPress={clearChat} style={styles.clearBtn}>
-            <Ionicons name="refresh-outline" size={24} color="#fff" />
+            <Ionicons name="refresh-outline" size={24} color="#4caf50" />
           </TouchableOpacity>
         </View>
 
@@ -247,7 +247,7 @@ export default function AIHealthBotScreen() {
 
           {isTyping && (
             <View style={[styles.messageBubble, styles.botMessage]}>
-              <View style={[styles.botIcon, { backgroundColor: '#4f8cff' }]}>
+              <View style={[styles.botIcon, { backgroundColor: '#4caf50' }]}>
                 <Ionicons name="chatbubble-outline" size={16} color="#fff" />
               </View>
               <View style={styles.typingIndicator}>
@@ -339,11 +339,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#4caf50',
   },
   headerSubtitle: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
+    color: '#4caf50',
   },
   clearBtn: {
     padding: 8,
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 6,
   },
   userContent: {
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
     borderBottomRightRadius: 6,
   },
   messageText: {
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   },
   typingText: {
     fontSize: 14,
-    color: '#4f8cff',
+    color: '#4caf50',
     marginRight: 8,
   },
   typingDots: {
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
     marginHorizontal: 2,
   },
   dot1: { opacity: 0.4 },
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   quickQuestionsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#4f8cff',
+    color: '#4caf50',
     marginBottom: 12,
   },
   quickQuestionsGrid: {
@@ -466,12 +466,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#4f8cff',
+    borderColor: '#4caf50',
     marginBottom: 8,
   },
   quickQuestionText: {
     fontSize: 13,
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '500',
   },
 
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   sendBtn: {
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
     borderRadius: 20,
     padding: 10,
     marginLeft: 10,

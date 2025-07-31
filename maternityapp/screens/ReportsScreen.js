@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Modal, ActivityIndicator, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { usePregnancy } from '../context/PregnancyContext';
 
 const typeIcon = {
-  ANC: { icon: 'calendar-check', color: '#4f8cff', bg: '#e3f0ff' },
+  ANC: { icon: 'calendar-check', color: '#4caf50', bg: '#e3f0ff' },
   Lab: { icon: 'flask-outline', color: '#81c784', bg: '#e8f5e8' },
   Rx: { icon: 'pill', color: '#e57373', bg: '#ffeaea' },
   Ultrasound: { icon: 'monitor-heart', color: '#ba68c8', bg: '#f3e5f5' },
@@ -20,46 +22,56 @@ const statusColors = {
 };
 
 export default function ReportsScreen({ route }) {
-  const { pregnancyId } = route.params;
+  const { pregnancyId } = usePregnancy();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`http://192.168.29.28:3000/report/byPregnancy/${pregnancyId}`);
-        console.log('Fetching reports for pregnancyId:', pregnancyId); // Debug log
-        console.log('Response:', response); // Debug log
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Fetched reports:', data); // Debug log
-          setReports(data.reports || []);
-        } else {
-          const errorText = await response.text();
-          console.error('Error response:', errorText);
-          setError('Failed to fetch reports.');
-        }
-      } catch (error) {
-        console.error('Fetch error:', error);
-        setError('An error occurred while fetching reports.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (pregnancyId) {
-      fetchReports();
-    }
-  }, [pregnancyId]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const openReportDetail = (report) => {
     setSelectedReport(report);
     setModalVisible(true);
   };
+
+  const fetchReports = async () => {
+  try {
+    setLoading(true);
+    const response = await fetch(`https://maternity-backend-1.onrender.com/report/byPregnancy/${pregnancyId}`);
+    if (response.ok) {
+      const data = await response.json();
+      setReports(data.reports || []);
+    } else {
+      const errorText = await response.text();
+      setError('Failed to fetch reports.');
+      console.error('Error response:', errorText);
+    }
+  } catch (error) {
+    console.error('Fetch error:', error);
+    setError('An error occurred while fetching reports.');
+  } finally {
+    setLoading(false);
+    setRefreshing(false); // Important
+  }
+};
+
+useFocusEffect(
+  useCallback(() => {
+    if (pregnancyId) {
+      console.log('📌 useFocusEffect triggered');
+      fetchReports();
+    } else {
+      console.log('🚫 pregnancyId missing in useFocusEffect');
+    }
+  }, [pregnancyId])
+);
+
+
+  const onRefresh = () => {
+  setRefreshing(true);
+  fetchReports();
+};
 
   const formatDate = (dateString) => {
     try {
@@ -111,7 +123,7 @@ export default function ReportsScreen({ route }) {
             <MaterialCommunityIcons
               name={typeIcon['Report']?.icon || 'file-document-outline'}
               size={28}
-              color={typeIcon['Report']?.color || '#4f8cff'}
+              color={typeIcon['Report']?.color || '#4caf50'}
             />
           </View>
           <View style={{ flex: 1 }}>
@@ -136,7 +148,7 @@ export default function ReportsScreen({ route }) {
           
           <View style={styles.actionRow}>
             <TouchableOpacity style={styles.viewBtn}>
-              <Ionicons name="eye-outline" size={16} color="#4f8cff" />
+              <Ionicons name="eye-outline" size={16} color="#4caf50" />
               <Text style={styles.viewBtnText}>View Details</Text>
             </TouchableOpacity>
             
@@ -297,7 +309,7 @@ export default function ReportsScreen({ route }) {
                 <Text style={styles.modalSubtitle}>{patientName}</Text>
               </View>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close-circle" size={28} color="#4f8cff" />
+                <Ionicons name="close-circle" size={28} color="#4caf50" />
               </TouchableOpacity>
             </View>
             
@@ -365,9 +377,9 @@ export default function ReportsScreen({ route }) {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
+      <LinearGradient colors={['#fff8b0', '#e6f781', '#d0f0c0']} style={styles.gradient}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color="#4caf50" />
           <Text style={styles.loadingText}>Loading reports...</Text>
         </View>
       </LinearGradient>
@@ -376,7 +388,7 @@ export default function ReportsScreen({ route }) {
 
   if (error) {
     return (
-      <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
+      <LinearGradient colors={['#fff8b0', '#e6f781', '#d0f0c0']} style={styles.gradient}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={64} color="#fff" />
           <Text style={styles.errorText}>{error}</Text>
@@ -401,7 +413,7 @@ export default function ReportsScreen({ route }) {
   const highRiskReports = reports.filter(report => getRiskLevel(report).level === 'High').length;
 
   return (
-    <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
+    <LinearGradient colors={['#fff8b0', '#e6f781', '#d0f0c0']} style={styles.gradient}>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>My Health Reports</Text>
@@ -431,12 +443,14 @@ export default function ReportsScreen({ route }) {
           </View>
         ) : (
           <FlatList
-            data={reports}
-            keyExtractor={item => item._id}
-            contentContainerStyle={{ paddingBottom: 100 }}
-            renderItem={renderReportCard}
-            showsVerticalScrollIndicator={false}
-          />
+  data={reports}
+  keyExtractor={item => item._id}
+  contentContainerStyle={{ paddingBottom: 100 }}
+  renderItem={renderReportCard}
+  showsVerticalScrollIndicator={false}
+  refreshing={refreshing}
+  onRefresh={onRefresh}
+/>
         )}
         
         <TouchableOpacity 
@@ -462,14 +476,14 @@ const styles = StyleSheet.create({
   title: { 
     fontSize: 26, 
     fontWeight: 'bold', 
-    color: '#fff', 
+    color: '#4caf50', 
     marginBottom: 4,
     textAlign: 'center',
     letterSpacing: 0.5 
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
+    color: '#4caf50',
     textAlign: 'center',
   },
   summaryCards: {
@@ -488,7 +502,7 @@ const styles = StyleSheet.create({
   summaryNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4f8cff',
+    color: '#4caf50',
   },
   summaryLabel: {
     fontSize: 12,
@@ -500,7 +514,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.15,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
@@ -527,7 +541,7 @@ const styles = StyleSheet.create({
   },
   reportWeek: {
     fontSize: 14,
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '600',
     marginBottom: 2,
   },
@@ -574,7 +588,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   viewBtnText: {
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '600',
     fontSize: 13,
     marginLeft: 4,
@@ -582,7 +596,7 @@ const styles = StyleSheet.create({
   downloadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -597,13 +611,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 24,
     bottom: 28,
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
     width: 56,
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.3,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
@@ -617,7 +631,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
+    color: '#4caf50',
     fontSize: 16,
     marginTop: 16,
   },
@@ -705,7 +719,7 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4f8cff',
+    color: '#4caf50',
     marginBottom: 8,
   },
   detailValue: {
@@ -763,7 +777,7 @@ const styles = StyleSheet.create({
   riskPrediction: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#4f8cff',
+    color: '#4caf50',
     marginBottom: 8,
   },
   probabilitiesContainer: {

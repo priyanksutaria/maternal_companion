@@ -110,9 +110,9 @@ export default function WelcomeScreen({ navigation }) {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#4f8cff" />
+      <StatusBar barStyle="light-content" backgroundColor="#4caf50" />
       <LinearGradient
-        colors={['#4f8cff', '#6dd5ed', '#fff']}
+        colors={['#fff8b0', '#e6f781', '#d0f0c0']}
         style={styles.gradient}
       >
         <ScrollView 
@@ -194,7 +194,7 @@ export default function WelcomeScreen({ navigation }) {
               <View style={styles.testimonialContainer}>
                 <View style={styles.testimonialContent}>
                   <View style={styles.quoteIcon}>
-                    <Ionicons name="chatbubble-outline" size={24} color="#4f8cff" />
+                    <Ionicons name="chatbubble-outline" size={24} color="#4caf50" />
                   </View>
                   <Text style={styles.testimonialText}>
                     "{TESTIMONIALS[currentTestimonial].text}"
@@ -228,7 +228,7 @@ export default function WelcomeScreen({ navigation }) {
             {/* Language Selection */}
             <View style={styles.langCard}>
               <View style={styles.langHeader}>
-                <Ionicons name="language" size={20} color="#4f8cff" />
+                <Ionicons name="language" size={20} color="#4caf50" />
                 <Text style={styles.langTitle}>Choose Your Language</Text>
               </View>
               <View style={styles.langRow}>
@@ -259,7 +259,7 @@ export default function WelcomeScreen({ navigation }) {
                 disabled={loading}
               >
                 <LinearGradient
-                  colors={['#4f8cff', '#667eea']}
+                  colors={[ '#4caf50', '#4caf50']}
                   style={styles.gradientButton}
                 >
                   {loading ? (
@@ -285,7 +285,7 @@ export default function WelcomeScreen({ navigation }) {
                 style={styles.secondaryButton}
                 onPress={() => navigation.navigate('NotRegistered')}
               >
-                <Ionicons name="person-add-outline" size={22} color="#4f8cff" />
+                <Ionicons name="person-add-outline" size={22} color="#4caf50" />
                 <Text style={styles.secondaryButtonText}>New User? Register Now</Text>
               </TouchableOpacity>
 
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#fff',
     borderWidth: 3,
-    borderColor: '#4f8cff',
+    borderColor: '#4caf50',
   },
   badgeContainer: {
     position: 'absolute',
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   titleEng: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#4f8cff',
+    color: '#4caf50',
     marginBottom: 8,
   },
   tagline: {
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#4f8cff',
+    color: '#4caf50',
   },
   statLabel: {
     fontSize: 12,
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   },
   govBadgeText: {
     fontSize: 10,
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '600',
   },
   featuresCard: {
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
   },
   activeDot: {
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
   },
   langCard: {
     backgroundColor: 'rgba(255,255,255,0.95)',
@@ -638,8 +638,8 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   langBtnActive: {
-    backgroundColor: '#4f8cff',
-    borderColor: '#4f8cff',
+    backgroundColor: '#4caf50',
+    borderColor: '#4caf50',
   },
   langFlag: {
     fontSize: 16,
@@ -706,12 +706,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#4f8cff',
+    borderColor: '#4caf50',
     marginBottom: 12,
     gap: 8,
   },
   secondaryButtonText: {
-    color: '#4f8cff',
+    color: '#4caf50',
     fontSize: 16,
     fontWeight: '600',
   },

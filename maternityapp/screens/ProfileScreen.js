@@ -124,7 +124,7 @@ export default function ProfileScreen() {
   const InfoCard = ({ title, children, icon }) => (
     <View style={styles.infoCard}>
       <View style={styles.cardHeader}>
-        <Ionicons name={icon} size={20} color="#4f8cff" />
+        <Ionicons name={icon} size={20} color="#4caf50" />
         <Text style={styles.cardTitle}>{title}</Text>
       </View>
       {children}
@@ -135,7 +135,7 @@ export default function ProfileScreen() {
     <View style={styles.inputContainer}>
       <Text style={styles.inputLabel}>{label}</Text>
       <View style={[styles.inputRow, !editable && styles.inputRowDisabled]}>
-        <Ionicons name={icon} size={18} color="#4f8cff" style={styles.inputIcon} />
+        <Ionicons name={icon} size={18} color="#4caf50" style={styles.inputIcon} />
         <TextInput
           style={[styles.input, !editable && styles.inputDisabled]}
           value={value}
@@ -151,7 +151,7 @@ export default function ProfileScreen() {
   );
 
   return (
-    <LinearGradient colors={['#4f8cff', '#6dd5ed', '#fff']} style={styles.gradient}>
+    <LinearGradient colors={['#fff8b0', '#e6f781', '#d0f0c0']} style={styles.gradient}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -177,7 +177,7 @@ export default function ProfileScreen() {
                   <Ionicons 
                     name={isEditing ? "close" : "create-outline"} 
                     size={16} 
-                    color="#4f8cff" 
+                    color="#4caf50" 
                   />
                   <Text style={styles.editButtonText}>
                     {isEditing ? getText('cancel') : getText('edit')}
@@ -309,7 +309,7 @@ export default function ProfileScreen() {
                 <View style={styles.prefRow}>
                   <Text style={styles.prefLabel}>{getText('medicineReminder')}:</Text>
                   <TouchableOpacity style={styles.timeButton}>
-                    <Ionicons name="time-outline" size={16} color="#4f8cff" />
+                    <Ionicons name="time-outline" size={16} color="#4caf50" />
                     <Text style={styles.timeText}>{reminderTime}</Text>
                   </TouchableOpacity>
                 </View>
@@ -325,7 +325,7 @@ export default function ProfileScreen() {
                 )}
                 
                 <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-                  <MaterialCommunityIcons name="logout" size={20} color="#4f8cff" style={{ marginRight: 8 }} />
+                  <MaterialCommunityIcons name="logout" size={20} color="#4caf50" style={{ marginRight: 8 }} />
                   <Text style={styles.logoutText}>{getText('logout')}</Text>
                 </TouchableOpacity>
               </View>
@@ -342,7 +342,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <MaterialCommunityIcons name="logout" size={48} color="#4f8cff" style={styles.modalIcon} />
+              <MaterialCommunityIcons name="logout" size={48} color="#4caf50" style={styles.modalIcon} />
               <Text style={styles.modalTitle}>{getText('logout')}</Text>
               <Text style={styles.modalMessage}>{getText('logoutConfirm')}</Text>
               <View style={styles.modalButtons}>
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 24,
     padding: 20,
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.15,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 8 },
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
     borderRadius: 12,
     width: 24,
     height: 24,
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
   },
   pregnancyWeek: {
     fontSize: 16,
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 12,
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   editButtonText: {
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '600',
     marginLeft: 6,
   },
@@ -540,11 +540,11 @@ const styles = StyleSheet.create({
     borderColor: '#e8f2ff',
   },
   langBtnActive: {
-    backgroundColor: '#4f8cff',
-    borderColor: '#4f8cff',
+    backgroundColor: '#4caf50',
+    borderColor: '#4caf50',
   },
   langText: {
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: '600',
     fontSize: 14,
   },
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   toggleTrackActive: {
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
   },
   toggleThumb: {
     width: 20,
@@ -597,12 +597,12 @@ const styles = StyleSheet.create({
   saveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4f8cff',
+    backgroundColor: '#4caf50',
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 24,
     marginBottom: 12,
-    shadowColor: '#4f8cff',
+    shadowColor: '#4caf50',
     shadowOpacity: 0.3,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -619,13 +619,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderWidth: 2,
-    borderColor: '#4f8cff',
+    borderColor: '#4caf50',
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 24,
   },
   logoutText: {
-    color: '#4f8cff',
+    color: '#4caf50',
     fontWeight: 'bold',
     fontSize: 16,
     letterSpacing: 0.5,
@@ -679,8 +679,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalBtnPrimary: {
-    backgroundColor: '#4f8cff',
-    borderColor: '#4f8cff',
+    backgroundColor: '#4caf50',
+    borderColor: '#4caf50',
   },
   modalBtnText: {
     fontSize: 16,

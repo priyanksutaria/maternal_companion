@@ -22,7 +22,7 @@ function MainTabNavigator() {
       initialRouteName="Dashboard"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#4f8cff',
+        tabBarActiveTintColor: '#4caf50',
         tabBarInactiveTintColor: '#b0c4de',
         tabBarStyle: { backgroundColor: '#fff', borderTopLeftRadius: 18, borderTopRightRadius: 18, height: 62, paddingBottom: 8 },
         tabBarIcon: ({ color, size }) => {
