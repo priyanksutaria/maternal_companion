@@ -39,14 +39,52 @@ function App() {
   return (
     <>
       <Routes>
+        {/* Main layout routes */}
         <Route
-          path="/*"
+          path="/"
           element={
-            <MainLayout onLoginClick={() => setIsLoginModalOpen(true)} />
+            <MainLayout onLoginClick={() => setIsLoginModalOpen(true)}>
+              <Home />
+            </MainLayout>
           }
         />
-          <Route path="/anc" element={<ANCDashboard />} />
+        <Route
+          path="/about"
+          element={
+            <MainLayout onLoginClick={() => setIsLoginModalOpen(true)}>
+              <About />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <MainLayout onLoginClick={() => setIsLoginModalOpen(true)}>
+              <Register />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/schemes"
+          element={
+            <MainLayout onLoginClick={() => setIsLoginModalOpen(true)}>
+              <Schemes />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/anc-centers"
+          element={
+            <MainLayout onLoginClick={() => setIsLoginModalOpen(true)}>
+              <ANCCenters />
+            </MainLayout>
+          }
+        />
+        
+        {/* Dashboard route without main layout */}
+        <Route path="/anc" element={<ANCDashboard />} />
       </Routes>
+      
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
@@ -56,20 +94,20 @@ function App() {
   );
 }
 
-const MainLayout = ({ onLoginClick }: { onLoginClick: () => void }) => (
+const MainLayout = ({ 
+  onLoginClick, 
+  children 
+}: { 
+  onLoginClick: () => void;
+  children: React.ReactNode;
+}) => (
   <div className="min-h-screen bg-gray-50">
     <Header />
     <Navbar onLoginClick={onLoginClick} />
     <NewsTicker />
     <NoticeTicker />
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/schemes" element={<Schemes />} />
-      <Route path="/anc-centers" element={<ANCCenters />} />
-    </Routes>
-    <Footer/> 
+    {children}
+    <Footer />
   </div>
 );
 
