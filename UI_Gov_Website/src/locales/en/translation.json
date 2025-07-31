@@ -1,5 +1,5 @@
 {
-  "appTitle": "Maternal Health Monitoring System",
+  "appTitle": "SmartMatriConnect",
   "appSubtitle": "Ensuring Safe Motherhood",
   "navbar": {
     "home": "Home",
@@ -25,8 +25,8 @@
     "healthcareCenters": "Healthcare Centers",
     "safeDeliveries": "Safe Deliveries",
     "monitoringSystem": "Monitoring System",
-    "aboutTitle": "About Maternal Health Monitoring System",
-    "aboutParagraph1": "The Maternal Health Monitoring System is a comprehensive digital platform designed to monitor and support pregnant women throughout their pregnancy journey. This system ensures safe motherhood by providing continuous care, risk assessment, and timely interventions. It is a project developed at Dwarkadas J. Sanghvi College of Engineering, aiming to reduce maternal and infant mortality rates through innovative technology.",
+    "aboutTitle": "About SmartMatriConnect",
+    "aboutParagraph1": "The SmartMatriConnect is a comprehensive digital platform designed to monitor and support pregnant women throughout their pregnancy journey. This system ensures safe motherhood by providing continuous care, risk assessment, and timely interventions. It is a project developed at Dwarkadas J. Sanghvi College of Engineering, aiming to reduce maternal and infant mortality rates through innovative technology.",
     "aboutParagraph2": "Our platform integrates advanced healthcare delivery systems to provide seamless care from registration to post-delivery care. Every pregnant woman is tracked through standardized protocols ensuring no one is left behind. The system leverages digital health records, real-time monitoring, and comprehensive health program integration to maximize impact.",
     "keyObjectives": "Key objectives include:",
     "objective1": "Universal registration and tracking of all pregnancies",
@@ -269,10 +269,10 @@
     "required": "This field is required."
   },
   "about": {
-    "headerTitle": "About Maternal Health Monitoring System",
+    "headerTitle": "About SmartMatriConnect",
     "headerSubtitle": "A comprehensive digital platform developed by the team of Dwarkadas J. Sanghvi College of Engineering to ensure safe motherhood and reduce maternal mortality through systematic tracking and quality healthcare delivery.",
     "projectOverviewTitle": "Project Overview",
-    "projectOverviewP1": "The Maternal Health Monitoring System is an innovative project developed at Dwarkadas J. Sanghvi College of Engineering, designed to provide comprehensive care to pregnant women from conception to post-delivery. This digital platform ensures that every pregnancy is monitored, tracked, and supported through evidence-based interventions.",
+    "projectOverviewP1": "The SmartMatriConnect is an innovative project developed at Dwarkadas J. Sanghvi College of Engineering, designed to provide comprehensive care to pregnant women from conception to post-delivery. This digital platform ensures that every pregnancy is monitored, tracked, and supported through evidence-based interventions.",
     "projectOverviewP2": "Developed as part of our commitment to leveraging technology for social impact, this system integrates with existing healthcare infrastructure to provide seamless care delivery. The project represents the culmination of extensive research, development, and collaboration between computer science and healthcare domains.",
     "projectOverviewP3": "The platform serves as a bridge between pregnant women, healthcare providers, and health programs, ensuring that no woman is left without proper maternal care regardless of her socio-economic status or geographical location. This student initiative demonstrates the power of technology in addressing real-world healthcare challenges.",
     "keyFeaturesTitle": "Key Features",

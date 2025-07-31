@@ -18,7 +18,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <div className="flex items-center mb-3">
               <Shield className="text-yellow-600 mr-2" size={20} />
-              <h3 className="text-lg font-bold text-gray-900">Maternal Health Monitoring System</h3>
+              <h3 className="text-lg font-bold text-gray-900">SmartMatriConnect</h3>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed mb-3">
               A comprehensive digital platform dedicated to monitoring and supporting pregnant women, reducing maternal and infant mortality, and ensuring safe deliveries across the nation.
@@ -97,7 +97,7 @@ export default function Footer() {
         <div className="border-t border-yellow-300 mt-6 pt-4">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0">
             <div className="text-gray-600 text-sm">
-              © {currentYear} Maternal Health Monitoring System. All rights reserved.
+              © {currentYear} SmartMatriConnect. All rights reserved.
             </div>
             <div className="flex space-x-4 text-sm">
               <a href="/privacy" className="text-gray-600 hover:text-yellow-700 transition-colors">
